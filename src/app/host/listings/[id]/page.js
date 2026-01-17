@@ -5,19 +5,19 @@ import {
   Star, Share2, Heart, MapPin, Wifi, Car, Utensils, 
   Wind, Tv, ShieldCheck, User, Calendar, Minus, Plus, ChevronDown
 } from 'lucide-react';
-import Navbar from '../../../components/Navbar'; // Adjust path based on your folder structure
-import Footer from '../../../components/Footer'; 
+import Navbar from '@/components/Navbar'; // ✅ Fixed Import
+import Footer from '@/components/Footer'; // ✅ Fixed Import
 
 export default function ListingPage({ params }) {
   const [liked, setLiked] = useState(false);
   const [guests, setGuests] = useState(1);
 
-  // MOCK DATA (In a real app, you would fetch this using params.id)
+  // --- MOCK DATA (Replace with Firestore fetch later) ---
   const listing = {
-    id: params.id,
+    id: params.id || '123', // Fallback ID
     title: "The Glass House on the Cliff",
     location: "Champagne Ridge, Kajiado, Kenya",
-    price: "22,500",
+    price: 22500, // Stored as number for math
     rating: 4.98,
     reviews: 124,
     host: "Brian Rao",
@@ -33,6 +33,18 @@ export default function ListingPage({ params }) {
     ]
   };
 
+  // --- CALCULATIONS ---
+  const NIGHTS = 5;
+  const CLEANING_FEE = 2500;
+  const SERVICE_FEE = 14000;
+  const subtotal = listing.price * NIGHTS;
+  const total = subtotal + CLEANING_FEE + SERVICE_FEE;
+
+  // Formatting Helper
+  const formatMoney = (amount) => {
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   return (
     <main className="bg-white min-h-screen font-sans text-gray-900">
       <Navbar />
@@ -42,7 +54,7 @@ export default function ListingPage({ params }) {
         {/* 1. HEADER */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-sm gap-4">
             <div className="flex items-center gap-2 font-medium">
               <Star size={16} fill="black" /> 
               <span>{listing.rating}</span>
@@ -53,30 +65,32 @@ export default function ListingPage({ params }) {
               </span>
             </div>
             <div className="flex gap-4">
-              <button className="flex items-center gap-2 underline hover:bg-gray-100 px-3 py-2 rounded-lg transition"><Share2 size={16}/> Share</button>
+              <button className="flex items-center gap-2 underline hover:bg-gray-100 px-3 py-2 rounded-lg transition">
+                <Share2 size={16}/> Share
+              </button>
               <button onClick={() => setLiked(!liked)} className="flex items-center gap-2 underline hover:bg-gray-100 px-3 py-2 rounded-lg transition">
-                <Heart size={16} fill={liked ? "red" : "transparent"} className={liked ? "text-red-500" : "text-black"}/> Save
+                <Heart size={16} fill={liked ? "#ff385c" : "transparent"} className={liked ? "text-[#ff385c]" : "text-black"}/> Save
               </button>
             </div>
           </div>
         </div>
 
         {/* 2. PHOTO GRID (Airbnb Style) */}
-        <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[400px] md:h-[500px] rounded-2xl overflow-hidden relative mb-12 cursor-pointer group">
-            <div className="col-span-2 row-span-2 relative overflow-hidden">
-                <img src={listing.images[0]} className="w-full h-full object-cover hover:scale-105 transition duration-500" />
+        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-2 h-[400px] md:h-[500px] rounded-2xl overflow-hidden relative mb-12 cursor-pointer group">
+            <div className="col-span-1 md:col-span-2 md:row-span-2 relative overflow-hidden">
+                <img src={listing.images[0]} className="w-full h-full object-cover hover:scale-105 transition duration-500" alt="Main View" />
             </div>
-            <div className="col-span-1 row-span-1 relative overflow-hidden">
-                <img src={listing.images[1]} className="w-full h-full object-cover hover:scale-105 transition duration-500" />
+            <div className="hidden md:block col-span-1 row-span-1 relative overflow-hidden">
+                <img src={listing.images[1]} className="w-full h-full object-cover hover:scale-105 transition duration-500" alt="Interior" />
             </div>
-            <div className="col-span-1 row-span-1 relative overflow-hidden">
-                <img src={listing.images[2]} className="w-full h-full object-cover hover:scale-105 transition duration-500" />
+            <div className="hidden md:block col-span-1 row-span-1 relative overflow-hidden">
+                <img src={listing.images[2]} className="w-full h-full object-cover hover:scale-105 transition duration-500" alt="Bedroom" />
             </div>
-            <div className="col-span-1 row-span-1 relative overflow-hidden">
-                <img src={listing.images[3]} className="w-full h-full object-cover hover:scale-105 transition duration-500" />
+            <div className="hidden md:block col-span-1 row-span-1 relative overflow-hidden">
+                <img src={listing.images[3]} className="w-full h-full object-cover hover:scale-105 transition duration-500" alt="Bathroom" />
             </div>
-            <div className="col-span-1 row-span-1 relative overflow-hidden">
-                <img src={listing.images[4]} className="w-full h-full object-cover hover:scale-105 transition duration-500" />
+            <div className="hidden md:block col-span-1 row-span-1 relative overflow-hidden">
+                <img src={listing.images[4]} className="w-full h-full object-cover hover:scale-105 transition duration-500" alt="Exterior" />
                 <button className="absolute bottom-4 right-4 bg-white px-4 py-2 text-xs font-bold rounded-lg border border-black shadow-md hover:scale-105 transition">Show all photos</button>
             </div>
         </div>
@@ -94,7 +108,7 @@ export default function ListingPage({ params }) {
                         <p className="text-gray-500">6 guests · 3 bedrooms · 3 beds · 3.5 baths</p>
                     </div>
                     <div className="w-14 h-14 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60" className="w-full h-full object-cover" />
+                        <img src="https://github.com/shadcn.png" className="w-full h-full object-cover" alt="Host" />
                     </div>
                 </div>
 
@@ -150,7 +164,7 @@ export default function ListingPage({ params }) {
                 <div className="sticky top-28 bg-white p-6 rounded-2xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] border border-gray-200">
                     <div className="flex justify-between items-end mb-6">
                         <div>
-                            <span className="text-2xl font-bold">KSh {listing.price}</span> <span className="text-gray-500">night</span>
+                            <span className="text-2xl font-bold">KSh {formatMoney(listing.price)}</span> <span className="text-gray-500">night</span>
                         </div>
                         <div className="flex items-center gap-1 text-sm font-bold underline">
                             <Star size={14} fill="black" /> {listing.rating} · {listing.reviews} reviews
@@ -180,7 +194,8 @@ export default function ListingPage({ params }) {
                         </div>
                     </div>
 
-                    <button className="w-full bg-nearlink hover:bg-nearlink-dark text-white font-bold py-3.5 rounded-xl text-lg mb-4 transition-transform active:scale-95">
+                    {/* Reserve Button - Using Standard Red/Pink if brand color not defined */}
+                    <button className="w-full bg-[#ff385c] hover:bg-[#d90b3e] text-white font-bold py-3.5 rounded-xl text-lg mb-4 transition-transform active:scale-95">
                         Reserve
                     </button>
 
@@ -188,22 +203,22 @@ export default function ListingPage({ params }) {
 
                     <div className="space-y-3 text-gray-600">
                         <div className="flex justify-between">
-                            <span className="underline">KSh {listing.price} x 5 nights</span>
-                            <span>KSh 112,500</span>
+                            <span className="underline">KSh {formatMoney(listing.price)} x {NIGHTS} nights</span>
+                            <span>KSh {formatMoney(subtotal)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="underline">Cleaning fee</span>
-                            <span>KSh 2,500</span>
+                            <span>KSh {formatMoney(CLEANING_FEE)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="underline">Service fee</span>
-                            <span>KSh 14,000</span>
+                            <span>KSh {formatMoney(SERVICE_FEE)}</span>
                         </div>
                     </div>
 
                     <div className="border-t border-gray-200 mt-4 pt-4 flex justify-between font-bold text-lg">
                         <span>Total before taxes</span>
-                        <span>KSh 129,000</span>
+                        <span>KSh {formatMoney(total)}</span>
                     </div>
                 </div>
             </div>
