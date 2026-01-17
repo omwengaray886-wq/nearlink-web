@@ -1,7 +1,7 @@
 'use client';
 
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { 
@@ -54,10 +54,10 @@ export default function AboutPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#050505] font-sans text-white selection:bg-nearlink selection:text-black">
+    <main className="min-h-screen bg-[#050505] font-sans text-white selection:bg-[#005871] selection:text-white">
       {/* Navbar with blur effect */}
       <div className="bg-black/80 backdrop-blur-xl pb-2 shadow-sm sticky top-0 z-50 border-b border-white/10">
-         <Navbar theme="dark" />
+          <Navbar theme="dark" />
       </div>
 
       {/* 1. HERO: THE MANIFESTO (Dark Mode) */}
@@ -65,12 +65,12 @@ export default function AboutPage() {
           {/* Animated Mesh Background */}
           <div className="absolute inset-0 opacity-40">
               <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/40 via-black to-black"></div>
-              <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-nearlink/5 rounded-full blur-[120px]"></div>
+              <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-[#005871]/10 rounded-full blur-[120px]"></div>
           </div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mt-10">
               <div>
-                  <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 rounded-full px-4 py-2 text-xs font-bold text-nearlink mb-8 uppercase tracking-widest backdrop-blur-md">
+                  <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 rounded-full px-4 py-2 text-xs font-bold text-[#005871] mb-8 uppercase tracking-widest backdrop-blur-md">
                       <Zap size={14} /> The Operating System for Travel
                   </div>
                   <h1 className="text-6xl md:text-8xl font-black text-white mb-8 leading-[0.95] tracking-tighter">
@@ -79,7 +79,7 @@ export default function AboutPage() {
                           Digital Bridge.
                       </span>
                   </h1>
-                  <p className="text-xl text-gray-300 max-w-xl leading-relaxed mb-10 border-l-4 border-nearlink pl-6">
+                  <p className="text-xl text-gray-300 max-w-xl leading-relaxed mb-10 border-l-4 border-[#005871] pl-6">
                       NearLink is a technology company connecting the physical world of African hospitality with the digital economy. We don't just find stays; we engineer trust.
                   </p>
                   <div className="flex gap-4">
@@ -113,7 +113,7 @@ export default function AboutPage() {
           </div>
       </div>
 
-      {/* 2. LIVE DATA TICKER (New Feature) */}
+      {/* 2. LIVE DATA TICKER */}
       <div className="border-y border-white/10 bg-[#050505] overflow-hidden whitespace-nowrap py-4">
           <div className="inline-block animate-marquee text-xs font-mono text-gray-400">
               <span className="mx-8"><span className="text-green-500">●</span> SYSTEMS OPERATIONAL</span>
@@ -129,7 +129,6 @@ export default function AboutPage() {
       </div>
 
       {/* 3. FOUNDER PROFILE (ADVANCED LIGHT MODE SECTION) */}
-      {/* Switching to light background for readability and "Executive" feel */}
       <div className="py-32 bg-white text-black relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gray-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -mr-32 -mt-32"></div>
           
@@ -138,10 +137,12 @@ export default function AboutPage() {
               {/* Image Side (Editorial Style) */}
               <div className="relative group">
                   <div className="absolute top-4 -left-4 w-full h-full border-2 border-black/10 rounded-[2rem]"></div>
+                  {/* ✅ Corrected Image File Name */}
                   <img 
-                    src="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1000" 
+                    src="/ceo-brian.png" 
                     className="relative w-full h-[600px] object-cover rounded-[2rem] shadow-2xl filter grayscale group-hover:grayscale-0 transition duration-1000" 
-                    alt="Brian Rao Omwenga"
+                    alt="Brian Omwenga Onkebo"
+                    onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1000"; }}
                   />
                   {/* Floating Quote Card */}
                   <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur-md p-6 rounded-xl border border-gray-200 shadow-xl max-w-xs">
@@ -162,7 +163,7 @@ export default function AboutPage() {
                   
                   <h3 className="text-5xl font-black text-gray-900 mb-8 leading-[1.1]">
                       Solving the <br/>
-                      <span className="text-nearlink-dark">Trust Gap.</span>
+                      <span className="text-[#005871]">Trust Gap.</span>
                   </h3>
                   
                   <div className="space-y-6 text-lg text-gray-600 leading-relaxed font-serif">
@@ -180,11 +181,12 @@ export default function AboutPage() {
                   <div className="mt-12 flex items-end justify-between border-t border-gray-200 pt-8">
                       <div>
                           <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" className="h-16 opacity-80 mb-2" alt="Signature" />
-                          <p className="font-bold text-xl text-black">Brian Rao Omwenga</p>
+                          {/* ✅ Corrected Name */}
+                          <p className="font-bold text-xl text-black">Brian Omwenga Onkebo</p>
                           <p className="text-sm text-gray-500">Founder & CEO, NearLink</p>
                       </div>
                       <Link href="/press">
-                          <button className="flex items-center gap-2 text-sm font-bold border-b-2 border-black pb-1 hover:text-nearlink-dark transition">
+                          <button className="flex items-center gap-2 text-sm font-bold border-b-2 border-black pb-1 hover:text-[#005871] transition">
                               Read Full Bio <ArrowRight size={16}/>
                           </button>
                       </Link>
@@ -200,7 +202,7 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto px-6 relative z-10">
               <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                   <div>
-                      <h2 className="text-nearlink font-bold text-sm uppercase tracking-widest mb-2"><Terminal size={16} className="inline mr-2"/> Engineering First</h2>
+                      <h2 className="text-[#005871] font-bold text-sm uppercase tracking-widest mb-2"><Terminal size={16} className="inline mr-2"/> Engineering First</h2>
                       <h3 className="text-5xl font-black text-white">The NearLink Stack.</h3>
                   </div>
                   <p className="text-gray-400 max-w-md text-sm leading-relaxed text-right">
@@ -210,7 +212,7 @@ export default function AboutPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Stack Card 1 */}
-                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-nearlink transition group">
+                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-[#005871] transition group">
                       <div className="flex justify-between items-start mb-6">
                           <div className="p-3 bg-blue-900/20 rounded-lg text-blue-400"><Smartphone size={24}/></div>
                           <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-1 rounded">MOBILE</span>
@@ -222,7 +224,7 @@ export default function AboutPage() {
                   </div>
 
                   {/* Stack Card 2 */}
-                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-nearlink transition group">
+                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-[#005871] transition group">
                       <div className="flex justify-between items-start mb-6">
                           <div className="p-3 bg-purple-900/20 rounded-lg text-purple-400"><Server size={24}/></div>
                           <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-1 rounded">CORE</span>
@@ -234,7 +236,7 @@ export default function AboutPage() {
                   </div>
 
                   {/* Stack Card 3 */}
-                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-nearlink transition group">
+                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-[#005871] transition group">
                       <div className="flex justify-between items-start mb-6">
                           <div className="p-3 bg-green-900/20 rounded-lg text-green-400"><Database size={24}/></div>
                           <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-1 rounded">DATA</span>
@@ -249,7 +251,7 @@ export default function AboutPage() {
                   </div>
 
                   {/* Stack Card 4 */}
-                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-nearlink transition group">
+                  <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-xl hover:border-[#005871] transition group">
                       <div className="flex justify-between items-start mb-6">
                           <div className="p-3 bg-orange-900/20 rounded-lg text-orange-400"><Lock size={24}/></div>
                           <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-1 rounded">SECURITY</span>
@@ -294,8 +296,8 @@ export default function AboutPage() {
                       <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/OpenStreetMap_Logo_2011.svg')] opacity-5 grayscale bg-cover bg-center"></div>
                       
                       {/* Pulse Points */}
-                      <div className="absolute top-[40%] left-[60%] w-3 h-3 bg-nearlink rounded-full animate-ping"></div>
-                      <div className="absolute top-[40%] left-[60%] w-3 h-3 bg-nearlink rounded-full border-2 border-black"></div>
+                      <div className="absolute top-[40%] left-[60%] w-3 h-3 bg-[#005871] rounded-full animate-ping"></div>
+                      <div className="absolute top-[40%] left-[60%] w-3 h-3 bg-[#005871] rounded-full border-2 border-black"></div>
                       
                       <div className="absolute top-[70%] left-[55%] w-2 h-2 bg-blue-500 rounded-full animate-pulse delay-700"></div>
                       <div className="absolute top-[30%] left-[50%] w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-1000"></div>
@@ -313,7 +315,7 @@ export default function AboutPage() {
       <div className="py-32 bg-white text-black">
           <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-20">
-                  <h2 className="text-sm font-bold text-nearlink-dark uppercase tracking-widest mb-4">The Super App Strategy</h2>
+                  <h2 className="text-sm font-bold text-[#005871] uppercase tracking-widest mb-4">The Super App Strategy</h2>
                   <h3 className="text-5xl font-black mb-6">One Platform. <br/>Infinite Possibilities.</h3>
               </div>
 
@@ -373,11 +375,11 @@ export default function AboutPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                   {leadership.map((person, i) => (
                       <div key={i} className="group text-center">
-                          <div className="relative w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden border-2 border-gray-100 group-hover:border-nearlink-dark transition">
+                          <div className="relative w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden border-2 border-gray-100 group-hover:border-[#005871] transition">
                               <img src={person.img} className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition duration-500" alt={person.name} />
                           </div>
                           <h3 className="text-xl font-bold text-black mb-1">{person.name}</h3>
-                          <p className="text-nearlink-dark text-xs font-bold uppercase tracking-widest mb-2">{person.role}</p>
+                          <p className="text-[#005871] text-xs font-bold uppercase tracking-widest mb-2">{person.role}</p>
                           <p className="text-gray-500 text-xs">{person.prev}</p>
                       </div>
                   ))}
@@ -440,7 +442,7 @@ export default function AboutPage() {
               </h2>
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
                   <Link href="/host">
-                      <button className="bg-nearlink text-black px-10 py-5 rounded-full font-bold text-xl hover:scale-105 transition shadow-[0_0_40px_rgba(0,255,128,0.3)] flex items-center gap-3 mx-auto">
+                      <button className="bg-[#005871] text-white px-10 py-5 rounded-full font-bold text-xl hover:scale-105 transition shadow-[0_0_40px_rgba(0,255,128,0.3)] flex items-center gap-3 mx-auto">
                           Start Hosting <ArrowRight size={24}/>
                       </button>
                   </Link>
