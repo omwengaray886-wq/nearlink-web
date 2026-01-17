@@ -137,13 +137,15 @@ export default function AboutPage() {
               {/* Image Side (Editorial Style) */}
               <div className="relative group">
                   <div className="absolute top-4 -left-4 w-full h-full border-2 border-black/10 rounded-[2rem]"></div>
-                  {/* ✅ Corrected Image File Name */}
+                  
+                  {/* ✅ UPDATED: Increased Height to h-[800px] to fit image better */}
                   <img 
                     src="/ceo-brian.png" 
-                    className="relative w-full h-[600px] object-cover rounded-[2rem] shadow-2xl filter grayscale group-hover:grayscale-0 transition duration-1000" 
+                    className="relative w-full h-[800px] object-cover rounded-[2rem] shadow-2xl filter grayscale group-hover:grayscale-0 transition duration-1000" 
                     alt="Brian Omwenga Onkebo"
                     onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1000"; }}
                   />
+                  
                   {/* Floating Quote Card */}
                   <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur-md p-6 rounded-xl border border-gray-200 shadow-xl max-w-xs">
                       <div className="flex items-center gap-3 mb-2">
@@ -181,7 +183,6 @@ export default function AboutPage() {
                   <div className="mt-12 flex items-end justify-between border-t border-gray-200 pt-8">
                       <div>
                           <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" className="h-16 opacity-80 mb-2" alt="Signature" />
-                          {/* ✅ Corrected Name */}
                           <p className="font-bold text-xl text-black">Brian Omwenga Onkebo</p>
                           <p className="text-sm text-gray-500">Founder & CEO, NearLink</p>
                       </div>
