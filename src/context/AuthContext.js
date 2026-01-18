@@ -12,8 +12,8 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-// ✅ IMPORT MATCH: This connects to the file you just created
 import { auth, db } from '@/lib/firebase'; 
+import Preloader from '@/components/Preloader'; // ✅ Import the new Preloader
 
 // 1. Context Creation
 const AuthContext = createContext({
@@ -35,8 +35,6 @@ export const AuthContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // --- HELPER: Sync User to Firestore ---
-  // This ensures that whether they sign up via Email or Google, 
-  // they get a document in your database.
   const saveUserToFirestore = async (firebaseUser, additionalData = {}) => {
     if (!firebaseUser) return;
     
@@ -132,7 +130,6 @@ export const AuthContextProvider = ({ children }) => {
   // --- LISTENER (THE ENGINE) ---
   useEffect(() => {
     // 🛡️ SAFETY TIMER: Forces the app to load after 4 seconds 
-    // This fixes the "Black Screen" issue if network is slow.
     const safetyTimer = setTimeout(() => {
       setLoading((currentLoading) => {
         if (currentLoading) {
@@ -197,14 +194,9 @@ export const AuthContextProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={values}>
-      {/* Loading Spinner */}
+      {/* Cinematic Preloader */}
       {loading ? (
-        <div className="flex items-center justify-center min-h-screen bg-white text-black">
-          <div className="flex flex-col items-center gap-4">
-             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black"></div>
-             <p className="text-sm font-medium text-gray-500 animate-pulse">Connecting to NearLink...</p>
-          </div>
-        </div>
+        <Preloader />
       ) : (
         children
       )}
