@@ -1,19 +1,20 @@
 'use client';
 
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { useState } from 'react';
 import { 
   ShieldCheck, Lock, UserCheck, Phone, HeartHandshake, 
   AlertTriangle, CheckCircle, Eye, CreditCard, ChevronRight,
-  Umbrella, Gavel, Search
+  Umbrella, Gavel, Search, MapPin
 } from 'lucide-react';
 
 export default function SafetyPage() {
   const [activeTab, setActiveTab] = useState('guest'); // 'guest' or 'host'
 
   return (
-    <main className="min-h-screen bg-white font-sans text-gray-900 selection:bg-nearlink selection:text-black">
+    <main className="min-h-screen bg-white font-sans text-gray-900 selection:bg-[#005871] selection:text-white">
+      {/* NAVBAR */}
       <div className="bg-black pb-2 shadow-sm sticky top-0 z-50 border-b border-white/10">
          <Navbar theme="dark" />
       </div>
@@ -22,12 +23,12 @@ export default function SafetyPage() {
       <div className="relative bg-[#050505] text-white py-32 overflow-hidden">
           {/* Abstract Background */}
           <div className="absolute inset-0 opacity-20">
-              <div className="absolute -right-20 -top-20 w-[600px] h-[600px] bg-nearlink rounded-full blur-[150px]"></div>
+              <div className="absolute -right-20 -top-20 w-[600px] h-[600px] bg-[#005871] rounded-full blur-[150px]"></div>
               <div className="absolute -left-20 -bottom-20 w-[500px] h-[500px] bg-blue-900 rounded-full blur-[150px]"></div>
           </div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-              <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 rounded-full px-4 py-2 text-xs font-bold text-nearlink mb-8 uppercase tracking-widest backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 rounded-full px-4 py-2 text-xs font-bold text-[#005871] mb-8 uppercase tracking-widest backdrop-blur-md">
                   <ShieldCheck size={14} /> Trust & Safety Center
               </div>
               <h1 className="text-5xl md:text-7xl font-black mb-8 leading-tight">
@@ -73,6 +74,7 @@ export default function SafetyPage() {
                               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
                                   Every host on NearLink goes through a rigorous vetting process. We don't just check email addresses; we verify real-world identities.
                               </p>
+
                               <ul className="space-y-4">
                                   <li className="flex gap-4">
                                       <div className="bg-green-100 p-2 rounded-full h-fit text-green-700"><UserCheck size={20}/></div>
@@ -98,7 +100,7 @@ export default function SafetyPage() {
                               </ul>
                           </div>
                           <div className="bg-gray-100 rounded-3xl p-8 relative overflow-hidden">
-                              <div className="absolute top-0 right-0 w-64 h-64 bg-nearlink/20 rounded-full blur-[80px]"></div>
+                              <div className="absolute top-0 right-0 w-64 h-64 bg-[#005871]/20 rounded-full blur-[80px]"></div>
                               {/* Visual representation of a verified profile card */}
                               <div className="bg-white p-6 rounded-2xl shadow-xl relative z-10 max-w-sm mx-auto transform rotate-2 hover:rotate-0 transition duration-500">
                                   <div className="flex items-center gap-4 mb-4">
@@ -133,13 +135,13 @@ export default function SafetyPage() {
                                   <p className="text-gray-400 mb-8 leading-relaxed">
                                       We hold your payment in a secure escrow account. The host effectively doesn't get paid until 24 hours after you successfully check in.
                                   </p>
-                                  <button className="bg-white text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-nearlink transition">
+                                  <button className="bg-white text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-[#005871] hover:text-white transition">
                                       Learn about Refund Policy <ChevronRight size={18}/>
                                   </button>
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                   <div className="bg-white/10 p-6 rounded-2xl border border-white/10">
-                                      <Lock className="text-nearlink mb-4" size={32}/>
+                                      <Lock className="text-[#005871] mb-4" size={32}/>
                                       <h4 className="font-bold text-lg">Secure Escrow</h4>
                                       <p className="text-xs text-gray-400 mt-2">Funds are safely held until check-in is verified.</p>
                                   </div>
@@ -163,7 +165,7 @@ export default function SafetyPage() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                           <div className="order-2 lg:order-1">
                               <div className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-8 border border-gray-200 shadow-xl relative">
-                                  <div className="absolute top-6 right-6 text-nearlink"><Umbrella size={48} strokeWidth={1}/></div>
+                                  <div className="absolute top-6 right-6 text-[#005871]"><Umbrella size={48} strokeWidth={1}/></div>
                                   <h3 className="text-2xl font-black mb-2 flex items-center gap-2">NearCover <span className="bg-black text-white text-[10px] px-2 py-1 rounded">INCLUDED</span></h3>
                                   <p className="text-gray-500 text-sm mb-8">Top-to-bottom protection for every booking.</p>
                                   
@@ -192,6 +194,7 @@ export default function SafetyPage() {
                               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
                                   Accidents happen. That's why we built NearCover. It provides $1M in damage protection and $1M in liability insurance for every single booking, at no extra cost to you.
                               </p>
+
                               <div className="flex flex-col gap-4">
                                   <div className="flex gap-4">
                                       <div className="bg-blue-50 p-2 rounded-full h-fit text-blue-600"><Gavel size={20}/></div>
@@ -243,21 +246,21 @@ export default function SafetyPage() {
           <div className="max-w-7xl mx-auto px-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="p-8 border border-gray-100 rounded-3xl hover:shadow-lg transition">
-                      <HeartHandshake className="text-nearlink mb-6" size={40}/>
+                      <HeartHandshake className="text-[#005871] mb-6" size={40}/>
                       <h3 className="text-xl font-bold mb-3">Inclusivity</h3>
                       <p className="text-gray-500 leading-relaxed">
                           We have a zero-tolerance policy for discrimination. Everyone deserves to feel at home, everywhere.
                       </p>
                   </div>
                   <div className="p-8 border border-gray-100 rounded-3xl hover:shadow-lg transition">
-                      <Lock className="text-nearlink mb-6" size={40}/>
+                      <Lock className="text-[#005871] mb-6" size={40}/>
                       <h3 className="text-xl font-bold mb-3">Privacy</h3>
                       <p className="text-gray-500 leading-relaxed">
                           We strictly prohibit hidden cameras and undisclosed recording devices in private spaces.
                       </p>
                   </div>
                   <div className="p-8 border border-gray-100 rounded-3xl hover:shadow-lg transition">
-                      <CheckCircle className="text-nearlink mb-6" size={40}/>
+                      <CheckCircle className="text-[#005871] mb-6" size={40}/>
                       <h3 className="text-xl font-bold mb-3">Reliability</h3>
                       <p className="text-gray-500 leading-relaxed">
                           Hosts must honor confirmed bookings. Last-minute cancellations are penalized to protect guests.

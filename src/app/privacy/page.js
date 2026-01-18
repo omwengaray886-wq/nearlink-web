@@ -4,210 +4,326 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { useState, useEffect } from 'react';
 import { 
-  Shield, Lock, Eye, FileText, Download, 
-  ChevronRight, Mail, Server, Globe, CheckCircle
+  Shield, Lock, Eye, FileText, Server, Globe, 
+  CreditCard, MapPin, UserCheck, Bell, ChevronRight, 
+  Download, Activity, Scale, AlertTriangle, Fingerprint
 } from 'lucide-react';
 
 export default function PrivacyPage() {
-  const [activeSection, setActiveSection] = useState('intro');
+  const [activeSection, setActiveSection] = useState('1');
 
-  const sections = [
-    { id: 'intro', label: 'Introduction' },
-    { id: 'collection', label: 'Data We Collect' },
-    { id: 'usage', label: 'How We Use Data' },
-    { id: 'sharing', label: 'Sharing & Disclosure' },
-    { id: 'security', label: 'Data Security' },
-    { id: 'rights', label: 'Your Rights' },
-    { id: 'contact', label: 'Contact Us' },
-  ];
+  // Advanced Scroll Spy Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = document.querySelectorAll('section[id]');
+      const scrollY = window.scrollY;
+
+      sections.forEach(current => {
+        const sectionHeight = current.offsetHeight;
+        const sectionTop = current.offsetTop - 180;
+        const sectionId = current.getAttribute('id');
+
+        if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+          setActiveSection(sectionId);
+        }
+      });
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const scrollTo = (id) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({
+        top: element.offsetTop - 140,
+        behavior: 'smooth'
+      });
       setActiveSection(id);
     }
   };
 
   return (
-    <main className="min-h-screen bg-white font-sans text-gray-900">
+    <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans selection:bg-black selection:text-white">
+      {/* NAVBAR */}
       <div className="bg-black pb-2 shadow-sm sticky top-0 z-50 border-b border-white/10">
          <Navbar theme="dark" />
       </div>
 
       {/* HEADER */}
-      <div className="bg-gray-50 border-b border-gray-200 py-16 md:py-24">
-          <div className="max-w-7xl mx-auto px-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                  <div>
-                      <div className="flex items-center gap-2 text-nearlink-dark font-bold uppercase tracking-widest text-xs mb-4">
-                          <Shield size={16}/> Legal Center
-                      </div>
-                      <h1 className="text-4xl md:text-5xl font-black mb-4">Privacy Policy</h1>
-                      <p className="text-gray-500 text-lg max-w-2xl">
-                          We believe that trust is the foundation of the NearLink community. This policy outlines how we protect your digital footprint.
-                      </p>
-                  </div>
-                  <div className="flex flex-col items-start md:items-end gap-2">
-                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Effective: Jan 14, 2026
-                      </span>
-                      <button className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-black transition">
-                          <Download size={16}/> Download PDF
-                      </button>
-                  </div>
-              </div>
+      <div className="bg-[#050505] text-white pt-24 pb-20 relative overflow-hidden">
+        {/* Abstract Background Element */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-6 backdrop-blur-md">
+            <Scale size={12} className="text-blue-400" /> Legal & Compliance
           </div>
+          <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">Global Privacy Policy</h1>
+          <p className="text-lg text-gray-400 max-w-3xl leading-relaxed">
+            This comprehensive document details NearLink's protocols for data processing, algorithmic decision-making, and compliance with international regulations including GDPR, CCPA, and the Kenya Data Protection Act.
+          </p>
+          <div className="mt-8 flex items-center gap-6 text-xs font-mono text-gray-500">
+            <span>Effective: January 14, 2026</span>
+            <span className="w-1 h-1 bg-gray-700 rounded-full"></span>
+            <span>Version: 3.0 (Enterprise)</span>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-16 flex flex-col lg:flex-row gap-16">
+      <div className="max-w-[1400px] mx-auto px-6 py-16">
+        <div className="flex flex-col lg:flex-row gap-16">
           
-          {/* LEFT: STICKY SIDEBAR */}
-          <div className="lg:w-64 flex-shrink-0 hidden lg:block">
-              <div className="sticky top-32">
-                  <h3 className="font-bold text-gray-400 text-xs uppercase tracking-widest mb-6">Table of Contents</h3>
-                  <ul className="space-y-1 border-l-2 border-gray-100">
-                      {sections.map((section) => (
-                          <li key={section.id}>
-                              <button 
-                                onClick={() => scrollTo(section.id)}
-                                className={`text-sm py-2 pl-4 text-left w-full transition-all border-l-2 -ml-[2px] ${activeSection === section.id ? 'border-black text-black font-bold' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
-                              >
-                                  {section.label}
-                              </button>
-                          </li>
-                      ))}
-                  </ul>
+          {/* SIDEBAR NAVIGATION (Sticky) */}
+          <div className="hidden lg:block w-80 shrink-0">
+            <div className="sticky top-32 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-200">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Table of Contents</p>
               </div>
+              <div className="max-h-[70vh] overflow-y-auto p-2 space-y-1">
+                {sidebarLinks.map(link => (
+                  <button
+                    key={link.id}
+                    onClick={() => scrollTo(link.id)}
+                    className={`w-full text-left px-4 py-3 rounded-lg text-xs font-bold transition-all flex items-center justify-between group ${
+                      activeSection === link.id 
+                        ? 'bg-black text-white shadow-md' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {link.label}
+                    {activeSection === link.id && <ChevronRight size={12} />}
+                  </button>
+                ))}
+              </div>
+              <div className="p-4 border-t border-gray-200 bg-gray-50">
+                <button className="w-full border border-gray-300 bg-white text-gray-900 px-4 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition">
+                  <Download size={14}/> Download PDF (2.4MB)
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* RIGHT: CONTENT */}
-          <div className="flex-1 max-w-3xl">
-              
-              {/* Introduction */}
-              <section id="intro" className="mb-16 scroll-mt-32">
-                  <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl mb-8 flex gap-4">
-                      <div className="mt-1 text-blue-600"><Eye size={24}/></div>
-                      <div>
-                          <h4 className="font-bold text-blue-900 mb-2">The Short Version</h4>
-                          <p className="text-sm text-blue-800 leading-relaxed">
-                              We only collect data necessary to provide our services (like booking stays or processing payments). We never sell your personal data to third parties. You have full control over your data settings in the app.
-                          </p>
-                      </div>
+          {/* MAIN CONTENT */}
+          <div className="flex-1 space-y-20 max-w-4xl">
+            
+            {/* 1. DEFINITIONS */}
+            <section id="1" className="space-y-6">
+              <span className="text-blue-600 font-bold text-sm tracking-widest">01. PREAMBLE</span>
+              <h2 className="text-3xl font-black text-gray-900">Definitions & Scope</h2>
+              <div className="prose prose-lg text-gray-600">
+                <p>
+                  NearLink Inc. ("NearLink", "we", "us", or "our") provides a multi-sided digital platform. This Privacy Policy applies to all users of our ecosystem, including Guests, Hosts, Drivers, and Experience Providers.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 not-prose">
+                  <div className="bg-white p-5 rounded-xl border border-gray-200">
+                    <h4 className="font-bold text-sm mb-2 text-black">Data Controller</h4>
+                    <p className="text-xs text-gray-500 leading-relaxed">NearLink Inc. is the Data Controller for data collected directly from you (e.g., account creation, booking requests).</p>
                   </div>
-                  <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                      NearLink, Inc. ("NearLink", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclosure, and safeguard your information when you visit our website nearlink.com and our mobile application.
+                  <div className="bg-white p-5 rounded-xl border border-gray-200">
+                    <h4 className="font-bold text-sm mb-2 text-black">Data Processor</h4>
+                    <p className="text-xs text-gray-500 leading-relaxed">For certain corporate services, NearLink acts as a Data Processor on behalf of enterprise clients.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 2. DATA COLLECTION */}
+            <section id="2" className="space-y-6 pt-10 border-t border-gray-200">
+               <span className="text-blue-600 font-bold text-sm tracking-widest">02. COLLECTION</span>
+              <h2 className="text-3xl font-black text-gray-900">Data Collection Protocols</h2>
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2"><Fingerprint size={20} className="text-purple-600"/> Biometric & Identity Data</h3>
+                  <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+                    To comply with Anti-Money Laundering (AML) and Know Your Customer (KYC) regulations, we collect:
                   </p>
-              </section>
-
-              <hr className="border-gray-100 my-12"/>
-
-              {/* Data Collection */}
-              <section id="collection" className="mb-16 scroll-mt-32">
-                  <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
-                      <FileText className="text-nearlink-dark"/> 1. Information We Collect
-                  </h2>
-                  <p className="text-gray-600 mb-6">We collect information in three categories:</p>
-                  
-                  <div className="space-y-6">
-                      <div className="pl-6 border-l-4 border-gray-100">
-                          <h3 className="font-bold text-lg mb-2">A. Information You Give Us</h3>
-                          <ul className="list-disc pl-5 space-y-2 text-gray-600">
-                              <li><strong>Account Profile:</strong> Name, email, phone number, and profile photo.</li>
-                              <li><strong>Identity Verification:</strong> Images of your government-issued ID (National ID/Passport) as required by local KYC laws.</li>
-                              <li><strong>Payment Data:</strong> M-Pesa numbers, credit card details (processed via secure gateways like Stripe/Paystack).</li>
-                          </ul>
-                      </div>
-
-                      <div className="pl-6 border-l-4 border-gray-100">
-                          <h3 className="font-bold text-lg mb-2">B. Information We Automatically Collect</h3>
-                          <ul className="list-disc pl-5 space-y-2 text-gray-600">
-                              <li><strong>Geo-Location:</strong> Precise location data to show nearby stays and enable safety features.</li>
-                              <li><strong>Usage Data:</strong> Pages viewed, bookings made, and interaction time.</li>
-                              <li><strong>Device Information:</strong> IP address, device model, and OS version.</li>
-                          </ul>
-                      </div>
-                  </div>
-              </section>
-
-              {/* Usage */}
-              <section id="usage" className="mb-16 scroll-mt-32">
-                  <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
-                      <Server className="text-nearlink-dark"/> 2. How We Use Your Data
-                  </h2>
-                  <p className="text-gray-600 mb-4">We use your personal data to:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                          <h4 className="font-bold mb-2">Service Provision</h4>
-                          <p className="text-sm text-gray-500">Processing bookings, payments, and facilitating host-guest communication.</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                          <h4 className="font-bold mb-2">Safety & Security</h4>
-                          <p className="text-sm text-gray-500">Detecting fraud, verifying identities, and ensuring platform integrity.</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                          <h4 className="font-bold mb-2">Customer Support</h4>
-                          <p className="text-sm text-gray-500">Resolving disputes and answering your queries.</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                          <h4 className="font-bold mb-2">R&D</h4>
-                          <p className="text-sm text-gray-500">Analyzing usage trends to improve our app performance.</p>
-                      </div>
-                  </div>
-              </section>
-
-              {/* Sharing */}
-              <section id="sharing" className="mb-16 scroll-mt-32">
-                  <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
-                      <Globe className="text-nearlink-dark"/> 3. Sharing & Disclosure
-                  </h2>
-                  <p className="text-gray-600 mb-4">
-                      We do not sell your data. We share information only in the following circumstances:
-                  </p>
-                  <ul className="space-y-4 text-gray-600">
-                      <li className="flex gap-3">
-                          <CheckCircle className="text-green-500 flex-shrink-0" size={20}/>
-                          <span><strong>With Hosts/Guests:</strong> To facilitate your booking (e.g., sharing your first name and profile photo). Phone numbers are masked until a booking is confirmed.</span>
-                      </li>
-                      <li className="flex gap-3">
-                          <CheckCircle className="text-green-500 flex-shrink-0" size={20}/>
-                          <span><strong>With Service Providers:</strong> Cloud hosting (AWS/Google Cloud), identity verification partners, and payment processors.</span>
-                      </li>
-                      <li className="flex gap-3">
-                          <CheckCircle className="text-green-500 flex-shrink-0" size={20}/>
-                          <span><strong>Legal Requirements:</strong> If compelled by a valid court order or to protect the safety of any person.</span>
-                      </li>
+                  <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600">
+                    <li><strong>Government ID:</strong> Images of National ID, Passport, or Driver's License.</li>
+                    <li><strong>Facial Recognition:</strong> "Selfie" imagery used solely for liveness checks and matching against Government ID.</li>
+                    <li><strong>Background Check Data:</strong> Criminal history and credit reports (where permitted by law) for Hosts and Drivers.</li>
                   </ul>
-              </section>
+                </div>
 
-              {/* Contact */}
-              <section id="contact" className="mb-16 scroll-mt-32">
-                  <div className="bg-black text-white p-8 rounded-3xl">
-                      <h2 className="text-2xl font-black mb-4">Questions about your data?</h2>
-                      <p className="text-gray-400 mb-6">
-                          Our Data Protection Officer (DPO) is available to answer any questions regarding your privacy rights.
-                      </p>
-                      <div className="flex flex-col gap-4">
-                          <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                                  <Mail size={18}/>
-                              </div>
-                              <span className="font-medium">privacy@nearlink.com</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                                  <Globe size={18}/>
-                              </div>
-                              <span className="font-medium">NearLink HQ, Westlands, Nairobi, Kenya</span>
-                          </div>
-                      </div>
-                  </div>
-              </section>
+                <div>
+                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2"><Activity size={20} className="text-blue-600"/> Telematics & Mobility Data</h3>
+                  <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+                    For our Transport and Mobility services, we collect granular sensor data:
+                  </p>
+                  <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600">
+                    <li><strong>Precise Geo-location:</strong> GPS data collected in foreground and background (for Drivers).</li>
+                    <li><strong>Driving Behavior:</strong> Accelerometer and gyroscope data to detect speed, braking, and collision events.</li>
+                    <li><strong>Device Status:</strong> Battery level, signal strength, and app version to optimize dispatch algorithms.</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* 3. ALGORITHMIC USE */}
+            <section id="3" className="space-y-6 pt-10 border-t border-gray-200">
+              <span className="text-blue-600 font-bold text-sm tracking-widest">03. PROCESSING</span>
+              <h2 className="text-3xl font-black text-gray-900">AI & Algorithmic Decision Making</h2>
+              <p className="text-gray-600 leading-relaxed">
+                NearLink utilizes proprietary machine learning models to automate decisions. You have the right to request human review of significant decisions.
+              </p>
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-4">
+                <div className="flex gap-4">
+                    <div className="shrink-0 w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center font-bold">1</div>
+                    <div>
+                        <h4 className="font-bold text-gray-900">Dynamic Pricing</h4>
+                        <p className="text-sm text-gray-600">Algorithms analyze supply, demand, weather, and traffic to set real-time pricing for Stays and Rides.</p>
+                    </div>
+                </div>
+                <div className="flex gap-4">
+                    <div className="shrink-0 w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center font-bold">2</div>
+                    <div>
+                        <h4 className="font-bold text-gray-900">Fraud Detection</h4>
+                        <p className="text-sm text-gray-600">AI models analyze payment patterns to block suspicious transactions and prevent account takeovers.</p>
+                    </div>
+                </div>
+                <div className="flex gap-4">
+                    <div className="shrink-0 w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center font-bold">3</div>
+                    <div>
+                        <h4 className="font-bold text-gray-900">Search Ranking</h4>
+                        <p className="text-sm text-gray-600">Listings are ranked based on user preferences, booking history, and host performance metrics.</p>
+                    </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 4. DISCLOSURE */}
+            <section id="4" className="space-y-6 pt-10 border-t border-gray-200">
+              <span className="text-blue-600 font-bold text-sm tracking-widest">04. DISCLOSURE</span>
+              <h2 className="text-3xl font-black text-gray-900">Data Sharing Matrix</h2>
+              
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
+                    <thead className="bg-gray-100 text-gray-900 font-bold uppercase text-xs">
+                        <tr>
+                            <th className="px-4 py-3 border-b">Recipient Category</th>
+                            <th className="px-4 py-3 border-b">Data Types Shared</th>
+                            <th className="px-4 py-3 border-b">Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        <tr>
+                            <td className="px-4 py-3 font-medium">Payment Processors</td>
+                            <td className="px-4 py-3 text-gray-600">Card hash, Transaction ID, Amount</td>
+                            <td className="px-4 py-3 text-gray-600">PCI-DSS compliant processing.</td>
+                        </tr>
+                        <tr>
+                            <td className="px-4 py-3 font-medium">Identity Vendors</td>
+                            <td className="px-4 py-3 text-gray-600">Biometric hash, ID Document</td>
+                            <td className="px-4 py-3 text-gray-600">KYC/AML Verification.</td>
+                        </tr>
+                        <tr>
+                            <td className="px-4 py-3 font-medium">Law Enforcement</td>
+                            <td className="px-4 py-3 text-gray-600">Metadata, Location History, PII</td>
+                            <td className="px-4 py-3 text-gray-600">Response to valid subpoenas/warrants.</td>
+                        </tr>
+                    </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* 5. CROSS-BORDER */}
+            <section id="5" className="space-y-6 pt-10 border-t border-gray-200">
+              <span className="text-blue-600 font-bold text-sm tracking-widest">05. INTERNATIONAL</span>
+              <h2 className="text-3xl font-black text-gray-900">Cross-Border Data Transfers</h2>
+              <p className="text-gray-600">
+                NearLink operates globally. Your data may be transferred to, and processed in, countries other than the country in which you are resident. These countries may have data protection laws that are different to the laws of your country.
+              </p>
+              <div className="bg-blue-50 border border-blue-100 p-6 rounded-xl">
+                <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2"><Globe size={18}/> Transfer Mechanisms</h4>
+                <p className="text-sm text-blue-800">
+                    We rely on <strong>Standard Contractual Clauses (SCCs)</strong> approved by the European Commission and relevant Data Protection Authorities to ensure your data remains protected when transferred internationally (e.g., to AWS servers in the US or EU).
+                </p>
+              </div>
+            </section>
+
+             {/* 6. SECURITY */}
+             <section id="6" className="space-y-6 pt-10 border-t border-gray-200">
+              <span className="text-blue-600 font-bold text-sm tracking-widest">06. SECURITY</span>
+              <h2 className="text-3xl font-black text-gray-900">Security Infrastructure</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <h4 className="font-bold flex items-center gap-2"><Lock size={16} className="text-green-600"/> Encryption at Rest</h4>
+                    <p className="text-xs text-gray-500">All sensitive database fields are encrypted using AES-256 standards.</p>
+                </div>
+                <div className="space-y-2">
+                    <h4 className="font-bold flex items-center gap-2"><Shield size={16} className="text-green-600"/> Encryption in Transit</h4>
+                    <p className="text-xs text-gray-500">All data transmission occurs over TLS 1.3 encrypted channels.</p>
+                </div>
+                <div className="space-y-2">
+                    <h4 className="font-bold flex items-center gap-2"><CreditCard size={16} className="text-green-600"/> PCI-DSS Level 1</h4>
+                    <p className="text-xs text-gray-500">We maintain full compliance for handling payment card data.</p>
+                </div>
+                <div className="space-y-2">
+                    <h4 className="font-bold flex items-center gap-2"><Eye size={16} className="text-green-600"/> Access Controls</h4>
+                    <p className="text-xs text-gray-500">Strict Principle of Least Privilege (PoLP) for internal employee access.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* 7. COOKIES */}
+            <section id="7" className="space-y-6 pt-10 border-t border-gray-200">
+               <span className="text-blue-600 font-bold text-sm tracking-widest">07. TRACKING</span>
+               <h2 className="text-3xl font-black text-gray-900">Cookie Schedule</h2>
+               <p className="text-gray-600 text-sm">We use the following categories of cookies:</p>
+               <ul className="space-y-3 mt-4">
+                 <li className="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg">
+                    <span className="font-bold text-xs uppercase bg-gray-100 px-2 py-1 h-fit rounded">Strictly Necessary</span>
+                    <span className="text-xs text-gray-600">Essential for authentication and security (e.g., Session tokens). Cannot be disabled.</span>
+                 </li>
+                 <li className="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg">
+                    <span className="font-bold text-xs uppercase bg-gray-100 px-2 py-1 h-fit rounded">Performance</span>
+                    <span className="text-xs text-gray-600">Google Analytics and Mixpanel to understand user behavior and load times.</span>
+                 </li>
+                 <li className="flex gap-4 p-3 bg-white border border-gray-200 rounded-lg">
+                    <span className="font-bold text-xs uppercase bg-gray-100 px-2 py-1 h-fit rounded">Advertising</span>
+                    <span className="text-xs text-gray-600">Meta Pixel and Google Ads to serve relevant advertising based on your interests.</span>
+                 </li>
+               </ul>
+            </section>
+
+             {/* 8. CONTACT */}
+             <section id="8" className="space-y-6 pt-10 border-t border-gray-200 pb-20">
+              <h2 className="text-3xl font-black text-gray-900">Legal Contact</h2>
+              <div className="bg-[#050505] text-white p-8 rounded-2xl shadow-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 className="text-lg font-bold mb-4">Data Protection Officer (DPO)</h4>
+                        <p className="text-gray-400 text-sm mb-4">For specific inquiries regarding your data rights, deletion requests, or regulatory compliance.</p>
+                        <a href="mailto:dpo@nearlink.com" className="text-white font-bold underline decoration-blue-500 decoration-2">dpo@nearlink.com</a>
+                    </div>
+                    <div>
+                        <h4 className="text-lg font-bold mb-4">Mailing Address</h4>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            NearLink Inc. Legal Dept.<br/>
+                            West Park Towers, 6th Floor<br/>
+                            Westlands, Nairobi, Kenya
+                        </p>
+                    </div>
+                </div>
+              </div>
+            </section>
 
           </div>
+        </div>
       </div>
-
+      
       <Footer />
     </main>
   );
 }
+
+const sidebarLinks = [
+  { id: '1', label: '1. Definitions & Scope' },
+  { id: '2', label: '2. Data Collection Protocols' },
+  { id: '3', label: '3. AI & Algorithms' },
+  { id: '4', label: '4. Sharing & Disclosure' },
+  { id: '5', label: '5. International Transfers' },
+  { id: '6', label: '6. Security Infrastructure' },
+  { id: '7', label: '7. Cookie Schedule' },
+  { id: '8', label: '8. Legal Contact' },
+];
