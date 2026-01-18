@@ -1,7 +1,8 @@
 'use client';
 
-import Navbar from '../../../components/Navbar';
-import Footer from '../../../components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import Link from 'next/link';
 import { useState, useRef } from 'react';
 import { 
   Lightbulb, Map, TrendingUp, BookOpen, PenTool, 
@@ -63,13 +64,6 @@ export default function HostGuidePage() {
     showNotification('loading', `Loading "${lessonTitle}"...`);
     setTimeout(() => {
         showNotification('success', 'Video playing (Simulated)');
-    }, 1000);
-  };
-
-  const handleArticleClick = (title) => {
-    showNotification('loading', `Opening "${title}"...`);
-    setTimeout(() => {
-        showNotification('success', 'Article loaded (Simulated)');
     }, 1000);
   };
 
@@ -143,30 +137,39 @@ export default function HostGuidePage() {
 
   const articles = [
       {
+          id: 1,
+          slug: "regulations-2026",
           category: "Regulations",
           title: "New Short-Term Rental Laws in Kenya: What You Need to Know (2026 Update)",
           readTime: "8 min read",
+          date: "Jan 14, 2026",
           image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=800",
           excerpt: "The tourism regulatory authority has released new guidelines for Airbnb and NearLink hosts. Are you compliant?"
       },
       {
+          id: 2,
+          slug: "afro-minimalist-design",
           category: "Interior Design",
           title: "The 'Afro-Minimalist' Trend: Designing for the Modern Traveler",
           readTime: "5 min read",
-          image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=800",
+          date: "Jan 10, 2026",
+          image: "https://images.unsplash.com/photo-1593696140826-c58b5e636894?q=80&w=800",
           excerpt: "How to use local fabrics and materials to create a space that feels authentic yet modern."
       },
       {
+          id: 3,
+          slug: "tax-101-kenya",
           category: "Finance",
           title: "Tax 101 for Kenyan Hosts: Filing Returns on Rental Income",
           readTime: "12 min read",
+          date: "Jan 05, 2026",
           image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=800",
           excerpt: "A step-by-step guide to declaring your NearLink income on iTax without getting a headache."
       }
   ];
 
   return (
-    <main className="min-h-screen bg-[#F5F7F9] font-sans text-gray-900 selection:bg-nearlink selection:text-black">
+    <main className="min-h-screen bg-[#F5F7F9] font-sans text-gray-900 selection:bg-[#005871] selection:text-black">
       <div className="bg-black pb-2 shadow-sm sticky top-0 z-50 border-b border-white/10">
          <Navbar theme="dark" />
       </div>
@@ -193,15 +196,15 @@ export default function HostGuidePage() {
       <div className="relative bg-[#050505] text-white pt-24 pb-48 overflow-hidden">
           <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
           <div className="absolute top-20 left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-nearlink/20 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#005871]/20 rounded-full blur-[120px] animate-pulse delay-1000"></div>
           
           <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-              <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 rounded-full px-4 py-2 text-xs font-bold text-nearlink mb-8 uppercase tracking-widest backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="inline-flex items-center gap-2 border border-white/20 bg-white/5 rounded-full px-4 py-2 text-xs font-bold text-[#005871] mb-8 uppercase tracking-widest backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-700">
                   <BookOpen size={14} /> NearLink University
               </div>
               <h1 className="text-5xl md:text-8xl font-black mb-8 leading-tight tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100">
                   Turn your space into <br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-nearlink via-white to-nearlink animate-pulse">a business empire.</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#005871] via-white to-[#005871] animate-pulse">a business empire.</span>
               </h1>
               <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
                   Access proprietary market data, masterclass courses, and the tools used by the top 1% of Superhosts in Africa.
@@ -210,9 +213,9 @@ export default function HostGuidePage() {
               <div className="flex flex-col sm:flex-row justify-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
                   <button 
                     onClick={() => scrollToSection(courseRef)}
-                    className="bg-nearlink text-black px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-[0_0_30px_rgba(0,255,128,0.3)] flex items-center justify-center gap-2"
+                    className="bg-[#005871] text-white px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-[0_0_30px_rgba(0,255,128,0.3)] flex items-center justify-center gap-2"
                   >
-                      Start Free Course <Play size={20} fill="black"/>
+                      Start Free Course <Play size={20} fill="white"/>
                   </button>
                   <button 
                     onClick={() => scrollToSection(marketRef)}
@@ -230,7 +233,7 @@ export default function HostGuidePage() {
               
               <div className="flex-1 space-y-8">
                   <div>
-                      <h3 className="text-3xl font-black flex items-center gap-3 mb-2"><Calculator className="text-nearlink"/> ROI Calculator</h3>
+                      <h3 className="text-3xl font-black flex items-center gap-3 mb-2"><Calculator className="text-[#005871]"/> ROI Calculator</h3>
                       <p className="text-gray-500">Project your earnings based on live market rates.</p>
                   </div>
                   
@@ -238,7 +241,7 @@ export default function HostGuidePage() {
                       <div className="space-y-2">
                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Location</label>
                           <select 
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold focus:ring-2 focus:ring-nearlink outline-none transition"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold focus:ring-2 focus:ring-[#005871] outline-none transition"
                             onChange={(e) => setCalcData({...calcData, location: e.target.value})}
                           >
                               <option value="Kilimani">Nairobi - Kilimani</option>
@@ -250,7 +253,7 @@ export default function HostGuidePage() {
                       <div className="space-y-2">
                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Property Type</label>
                           <select 
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold focus:ring-2 focus:ring-nearlink outline-none transition"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold focus:ring-2 focus:ring-[#005871] outline-none transition"
                             onChange={(e) => setCalcData({...calcData, type: e.target.value})}
                           >
                               <option value="1 Bedroom">Entire Apartment (1 Bedroom)</option>
@@ -263,7 +266,7 @@ export default function HostGuidePage() {
                   <div className="space-y-4">
                       <div className="flex justify-between">
                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Projected Occupancy</label>
-                          <span className="font-bold text-nearlink">{calcData.occupancy}%</span>
+                          <span className="font-bold text-[#005871]">{calcData.occupancy}%</span>
                       </div>
                       <input 
                         type="range" 
@@ -271,7 +274,7 @@ export default function HostGuidePage() {
                         max="100" 
                         value={calcData.occupancy} 
                         onChange={(e) => setCalcData({...calcData, occupancy: e.target.value})}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-nearlink"
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#005871]"
                       />
                       <div className="flex justify-between text-xs text-gray-400">
                           <span>Conservative (30%)</span>
@@ -281,7 +284,7 @@ export default function HostGuidePage() {
               </div>
 
               <div className="flex-1 bg-[#0a0a0a] text-white rounded-3xl p-10 flex flex-col justify-between relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-nearlink/20 rounded-full blur-[80px] group-hover:bg-nearlink/30 transition duration-1000"></div>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#005871]/20 rounded-full blur-[80px] group-hover:bg-[#005871]/30 transition duration-1000"></div>
                   
                   <div>
                       <p className="text-gray-400 font-medium mb-1">Monthly Potential</p>
@@ -298,7 +301,7 @@ export default function HostGuidePage() {
                       </div>
                       <div>
                           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Peak Season</p>
-                          <p className="text-xl font-bold text-nearlink">KES {(parseInt(calculateRevenue().replace(/,/g, '')) * 1.4).toLocaleString()}</p>
+                          <p className="text-xl font-bold text-[#005871]">KES {(parseInt(calculateRevenue().replace(/,/g, '')) * 1.4).toLocaleString()}</p>
                       </div>
                   </div>
               </div>
@@ -328,7 +331,7 @@ export default function HostGuidePage() {
                               <div>
                                   <h4 className="font-bold text-lg text-gray-900">{quote.author}</h4>
                                   <div className="flex items-center gap-2 text-xs text-gray-500 font-bold uppercase tracking-wider">
-                                      <span>{quote.role}</span> • <span className="text-nearlink-dark">{quote.loc}</span>
+                                      <span>{quote.role}</span> • <span className="text-[#005871]">{quote.loc}</span>
                                   </div>
                               </div>
                           </div>
@@ -367,7 +370,7 @@ export default function HostGuidePage() {
                       <div 
                         key={i} 
                         onClick={() => handleMarketCardClick(areaName)}
-                        className="bg-white p-8 rounded-3xl border border-gray-100 hover:shadow-xl hover:border-nearlink/50 transition duration-300 group cursor-pointer"
+                        className="bg-white p-8 rounded-3xl border border-gray-100 hover:shadow-xl hover:border-[#005871]/50 transition duration-300 group cursor-pointer"
                       >
                           <div className="flex justify-between items-start mb-6">
                               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black text-xl group-hover:scale-110 transition">
@@ -419,9 +422,9 @@ export default function HostGuidePage() {
                           <div 
                             key={i} 
                             onClick={() => handleTimelineClick(step.title)}
-                            className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center group hover:-translate-y-2 transition duration-300 cursor-pointer hover:border-nearlink"
+                            className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center group hover:-translate-y-2 transition duration-300 cursor-pointer hover:border-[#005871]"
                           >
-                              <div className="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-nearlink group-hover:text-white transition shadow-sm border border-gray-100">
+                              <div className="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-[#005871] group-hover:text-white transition shadow-sm border border-gray-100">
                                   <step.icon size={28}/>
                               </div>
                               <h4 className="font-bold text-lg mb-0.5">{step.title}: {step.sub}</h4>
@@ -456,13 +459,13 @@ export default function HostGuidePage() {
 
               <div className="space-y-4">
                   {courses.map((course) => (
-                      <div key={course.id} className="border border-white/10 rounded-2xl bg-[#151515] overflow-hidden transition-all duration-300 hover:border-nearlink/30">
+                      <div key={course.id} className="border border-white/10 rounded-2xl bg-[#151515] overflow-hidden transition-all duration-300 hover:border-[#005871]/30">
                           <button 
                             onClick={() => setActiveModule(activeModule === course.id ? null : course.id)}
                             className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition"
                           >
                               <div className="flex items-center gap-6">
-                                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition ${isEnrolled ? 'bg-green-500/20 text-green-500' : 'bg-white/10 text-nearlink'}`}>
+                                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition ${isEnrolled ? 'bg-green-500/20 text-green-500' : 'bg-white/10 text-[#005871]'}`}>
                                       {isEnrolled ? <Unlock size={18}/> : course.id}
                                   </div>
                                   <div className="text-left">
@@ -487,7 +490,7 @@ export default function HostGuidePage() {
                                             onClick={() => handleLessonPlay(lesson)}
                                             className="flex items-center gap-4 text-gray-400 hover:text-white transition cursor-pointer group p-2 rounded hover:bg-white/5"
                                           >
-                                              <div className={`w-8 h-8 rounded-full border border-gray-600 flex items-center justify-center transition ${isEnrolled ? 'group-hover:border-nearlink group-hover:bg-nearlink group-hover:text-black' : 'group-hover:border-white'}`}>
+                                              <div className={`w-8 h-8 rounded-full border border-gray-600 flex items-center justify-center transition ${isEnrolled ? 'group-hover:border-[#005871] group-hover:bg-[#005871] group-hover:text-black' : 'group-hover:border-white'}`}>
                                                   {isEnrolled ? <Play size={12} className="fill-current"/> : <Lock size={12}/>}
                                               </div>
                                               <span className="font-medium text-sm">{lesson}</span>
@@ -496,9 +499,9 @@ export default function HostGuidePage() {
                                       ))}
                                   </ul>
                                   {!isEnrolled && (
-                                      <div className="mt-6 p-4 bg-nearlink/10 border border-nearlink/20 rounded-xl flex items-center justify-between">
-                                          <span className="text-sm font-bold text-nearlink flex items-center gap-2"><Lock size={14}/> Unlock full access to watch</span>
-                                          <button onClick={handleEnroll} className="text-xs font-bold bg-nearlink text-black px-4 py-2 rounded-lg hover:bg-white transition">Unlock Now</button>
+                                      <div className="mt-6 p-4 bg-[#005871]/10 border border-[#005871]/20 rounded-xl flex items-center justify-between">
+                                          <span className="text-sm font-bold text-[#005871] flex items-center gap-2"><Lock size={14}/> Unlock full access to watch</span>
+                                          <button onClick={handleEnroll} className="text-xs font-bold bg-[#005871] text-black px-4 py-2 rounded-lg hover:bg-white transition">Unlock Now</button>
                                       </div>
                                   )}
                               </div>
@@ -520,50 +523,45 @@ export default function HostGuidePage() {
                       <h2 className="text-4xl font-black mb-2">Read, Learn, Grow.</h2>
                       <p className="text-gray-600">Deep dives into regulations, design, and hospitality trends.</p>
                   </div>
-                  <button 
-                    onClick={() => handleArticleClick("All Articles Archive")}
-                    className="text-sm font-bold text-nearlink flex items-center gap-2 hover:underline"
-                  >
+                  <Link href="/host/guide/archive" className="text-sm font-bold text-[#005871] flex items-center gap-2 hover:underline">
                       View all articles <ArrowRight size={16}/>
-                  </button>
+                  </Link>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                  <div className="group cursor-pointer" onClick={() => handleArticleClick(articles[0].title)}>
-                      <div className="aspect-[4/3] rounded-3xl overflow-hidden mb-6 relative">
-                          <img src={articles[0].image} className="w-full h-full object-cover transition duration-700 group-hover:scale-105" alt="Featured"/>
-                          <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition"></div>
-                          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-gray-200">
-                              {articles[0].category}
+                  <div className="group cursor-pointer">
+                      <Link href={`/host/guide/${articles[0].slug}`}>
+                          <div className="aspect-[4/3] rounded-3xl overflow-hidden mb-6 relative">
+                              <img src={articles[0].image} className="w-full h-full object-cover transition duration-700 group-hover:scale-105" alt="Featured"/>
+                              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition"></div>
+                              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-gray-200">
+                                  {articles[0].category}
+                              </div>
                           </div>
-                      </div>
-                      <h3 className="text-3xl font-black mb-3 group-hover:text-nearlink-dark transition">{articles[0].title}</h3>
-                      <p className="text-gray-500 mb-4 line-clamp-2 leading-relaxed">{articles[0].excerpt}</p>
-                      <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                          <span>{articles[0].readTime}</span>
-                          <span>•</span>
-                          <span>Jan 14, 2026</span>
-                      </div>
+                          <h3 className="text-3xl font-black mb-3 group-hover:text-[#005871] transition">{articles[0].title}</h3>
+                          <p className="text-gray-500 mb-4 line-clamp-2 leading-relaxed">{articles[0].excerpt}</p>
+                          <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                              <span>{articles[0].readTime}</span>
+                              <span>•</span>
+                              <span>{articles[0].date}</span>
+                          </div>
+                      </Link>
                   </div>
 
                   <div className="flex flex-col gap-8">
                       {articles.slice(1).map((article, i) => (
-                          <div 
-                            key={i} 
-                            onClick={() => handleArticleClick(article.title)}
-                            className="flex gap-6 group cursor-pointer border-b border-gray-100 pb-8 last:border-0 last:pb-0"
-                          >
+                          <Link href={`/host/guide/${article.slug}`} key={i} className="flex gap-6 group cursor-pointer border-b border-gray-100 pb-8 last:border-0 last:pb-0">
                               <div className="w-32 h-32 rounded-2xl overflow-hidden shrink-0 relative">
                                   <img src={article.image} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" alt="Article"/>
                               </div>
                               <div>
-                                  <div className="text-xs font-bold text-nearlink uppercase tracking-wider mb-2">{article.category}</div>
-                                  <h4 className="text-xl font-bold mb-2 leading-tight group-hover:text-nearlink-dark transition">{article.title}</h4>
+                                  <div className="text-xs font-bold text-[#005871] uppercase tracking-wider mb-2">{article.category}</div>
+                                  <h4 className="text-xl font-bold mb-2 leading-tight group-hover:text-[#005871] transition">{article.title}</h4>
                                   <div className="flex items-center gap-2 text-xs text-gray-400">
                                       <Clock size={12}/> {article.readTime}
                                   </div>
                               </div>
-                          </div>
+                          </Link>
                       ))}
                   </div>
               </div>
@@ -573,7 +571,7 @@ export default function HostGuidePage() {
       {/* 8. DOWNLOADABLE TOOLKIT */}
       <div className="py-24 bg-white border-t border-gray-100">
           <div className="max-w-7xl mx-auto px-6">
-              <div className="bg-nearlink/5 rounded-[3rem] p-12 md:p-20 relative overflow-hidden border border-nearlink/10">
+              <div className="bg-[#005871]/5 rounded-[3rem] p-12 md:p-20 relative overflow-hidden border border-[#005871]/10">
                   <div className="relative z-10">
                       <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                           <div>

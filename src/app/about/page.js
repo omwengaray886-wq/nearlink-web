@@ -10,11 +10,12 @@ import {
   Briefcase, Anchor, Code, Database, Lock, Smartphone,
   Home, Compass, Car, CheckCircle, Radio, Leaf, Award, 
   TrendingUp, Users, Newspaper, Play, ChevronDown,
-  Terminal, Activity, Quote
+  Terminal, Activity, Quote, X
 } from 'lucide-react';
 
 export default function AboutPage() {
   const [scrollY, setScrollY] = useState(0);
+  const [showVideo, setShowVideo] = useState(false); // State for Video Modal
   const [counts, setCounts] = useState({ hosts: 0, guests: 0, cities: 0, valuation: 0 });
 
   // Scroll Listener
@@ -23,6 +24,14 @@ export default function AboutPage() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Smooth Scroll Handler
+  const scrollToVision = () => {
+    const section = document.getElementById('vision-section');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Counter Logic
   useEffect(() => {
@@ -82,15 +91,24 @@ export default function AboutPage() {
                   <p className="text-xl text-gray-300 max-w-xl leading-relaxed mb-10 border-l-4 border-[#005871] pl-6">
                       NearLink is a technology company connecting the physical world of African hospitality with the digital economy. We don't just find stays; we engineer trust.
                   </p>
+                  
+                  {/* --- INTERACTIVE BUTTONS --- */}
                   <div className="flex gap-4">
-                      <button className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                      <button 
+                        onClick={scrollToVision}
+                        className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                      >
                           Read the Vision <ArrowRight size={20}/>
                       </button>
-                      <button className="px-8 py-4 rounded-full font-bold text-lg text-white border border-white/20 hover:bg-white/10 transition flex items-center gap-2">
+                      <button 
+                        onClick={() => setShowVideo(true)}
+                        className="px-8 py-4 rounded-full font-bold text-lg text-white border border-white/20 hover:bg-white/10 transition flex items-center gap-2"
+                      >
                           <Play size={20} className="fill-white"/> Watch Film
                       </button>
                   </div>
               </div>
+
               <div className="relative hidden lg:block">
                   {/* Abstract 3D Cube/Map Representation */}
                   <div className="w-full aspect-square border border-white/10 rounded-3xl bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm relative p-8 flex items-center justify-center animate-in fade-in slide-in-from-right-10 duration-1000">
@@ -128,17 +146,17 @@ export default function AboutPage() {
           </div>
       </div>
 
-      {/* 3. FOUNDER PROFILE (ADVANCED LIGHT MODE SECTION) */}
-      <div className="py-32 bg-white text-black relative overflow-hidden">
+      {/* 3. FOUNDER PROFILE (TARGET FOR SCROLL) */}
+      <div id="vision-section" className="py-32 bg-white text-black relative overflow-hidden scroll-mt-20">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gray-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -mr-32 -mt-32"></div>
           
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
               
-              {/* Image Side (Editorial Style) */}
+              {/* Image Side */}
               <div className="relative group">
                   <div className="absolute top-4 -left-4 w-full h-full border-2 border-black/10 rounded-[2rem]"></div>
                   
-                  {/* ✅ UPDATED: Increased Height to h-[800px] to fit image better */}
+                  {/* Updated CEO Image */}
                   <img 
                     src="/ceo-brian.png" 
                     className="relative w-full h-[800px] object-cover rounded-[2rem] shadow-2xl filter grayscale group-hover:grayscale-0 transition duration-1000" 
@@ -186,7 +204,7 @@ export default function AboutPage() {
                           <p className="font-bold text-xl text-black">Brian Omwenga Onkebo</p>
                           <p className="text-sm text-gray-500">Founder & CEO, NearLink</p>
                       </div>
-                      <Link href="/press">
+                      <Link href="/bio">
                           <button className="flex items-center gap-2 text-sm font-bold border-b-2 border-black pb-1 hover:text-[#005871] transition">
                               Read Full Bio <ArrowRight size={16}/>
                           </button>
@@ -244,10 +262,7 @@ export default function AboutPage() {
                       </div>
                       <h4 className="text-xl font-bold mb-2">TensorFlow</h4>
                       <p className="text-gray-400 text-xs leading-relaxed mb-4">
-                          AI models for fraud detection and personalized recommendations. 
-
-[Image of neural network diagram]
-
+                          AI models for fraud detection and personalized recommendations.
                       </p>
                   </div>
 
@@ -457,6 +472,34 @@ export default function AboutPage() {
       </div>
 
       <Footer />
+      
+      {/* VIDEO MODAL COMPONENT */}
+      {showVideo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <button 
+            onClick={() => setShowVideo(false)}
+            className="absolute top-8 right-8 text-white/50 hover:text-white transition"
+          >
+            <X size={48} />
+          </button>
+          
+          <div className="w-full max-w-6xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 relative">
+             {/* REPLACE THE SRC BELOW WITH YOUR OWN VIDEO 
+                 If you have a YouTube video, use this format:
+                 https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=1
+             */}
+             <iframe 
+               src="https://www.youtube.com/embed/lxS1tM9nTwY?autoplay=1&mute=0" 
+               className="w-full h-full"
+               title="NearLink Vision"
+               frameBorder="0"
+               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+               allowFullScreen
+             ></iframe>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
