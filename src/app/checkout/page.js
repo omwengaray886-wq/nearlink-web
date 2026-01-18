@@ -4,19 +4,21 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { useBooking } from '@/hooks/useBooking'; // ✅ Import the hook
 import { 
-  ChevronLeft, ShieldCheck, CreditCard, Smartphone, 
-  Star, Calendar, Users, Loader2, CheckCircle, Lock 
+  ChevronLeft, CreditCard, Smartphone, 
+  Star, Loader2, CheckCircle, Lock 
 } from 'lucide-react';
 
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { initiateBooking, loading: bookingLoading } = useBooking(); // ✅ Use the hook
 
   // --- GET URL PARAMS ---
   const propertyId = searchParams.get('id');
@@ -28,7 +30,6 @@ function CheckoutContent() {
   // --- STATE ---
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('mpesa'); // 'mpesa' or 'card'
   const [phoneNumber, setPhoneNumber] = useState('');
 
@@ -59,9 +60,9 @@ function CheckoutContent() {
 
   // --- CALCULATIONS ---
   const calculateTotal = () => {
-    if (!item) return { total: 0, nights: 0, serviceFee: 0, base: 0 };
+    if (!item) return { total: 0, count: 0, serviceFee: 0, basePrice: 0 };
     
-    const price = Number(item.price);
+    const price = Number(item.price || item.pricePerNight);
     let duration = 1;
 
     if (type === 'property' && checkInDate && checkOutDate) {
@@ -86,53 +87,40 @@ function CheckoutContent() {
 
   // --- HANDLER: CONFIRM BOOKING ---
   const handlePayment = async () => {
-    if (processing) return;
-    setProcessing(true);
+    if (bookingLoading) return;
 
     try {
-      // 1. Simulate Payment Delay (e.g. M-Pesa STK Push)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // 2. Create Booking in Firestore
-      const bookingData = {
-        userId: user.uid,
+      // 1. Call Cloud Function via Hook
+      const paymentData = await initiateBooking({
         propertyId: item.id,
-        propertyName: item.title || item.category,
-        propertyImage: item.images?.[0] || item.imageUrl || item.image,
-        location: item.location,
-        hostId: item.hostId || 'ADMIN',
-        checkIn: type === 'property' ? new Date(checkInDate) : new Date(), // Logic for activity date needed
-        checkOut: type === 'property' ? new Date(checkOutDate) : new Date(),
+        checkIn: checkInDate, // Pass strings, backend handles parsing
+        checkOut: checkOutDate,
         guests,
-        totalAmount: total,
-        serviceFee,
-        pricePerNight: item.price,
-        nights: count,
-        bookingType: type,
-        status: 'confirmed',
-        paymentMethod,
-        createdAt: serverTimestamp(),
-      };
+        bookingType: type === 'activity' ? 'activity' : 'stay'
+      });
 
-      const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-
-      // 3. Redirect to Trip Details
-      router.push(`/trips/${docRef.id}`);
+      // 2. Redirect to Paystack
+      if (paymentData.authorizationUrl) {
+        window.location.href = paymentData.authorizationUrl; 
+      } else {
+        alert("Payment initialization failed. No URL returned.");
+      }
 
     } catch (error) {
       console.error("Booking failed:", error);
-      alert("Payment failed. Please try again.");
-      setProcessing(false);
+      alert("Payment failed: " + error.message);
     }
   };
 
-  if (loading || authLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin w-10 h-10 text-nearlink"/></div>;
+  if (loading || authLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin w-10 h-10 text-black"/></div>;
 
   if (!item) return <div className="min-h-screen flex items-center justify-center">Item not found</div>;
 
   return (
-    <main className="min-h-screen bg-white pb-20">
-      <div className="border-b border-gray-100"><Navbar /></div>
+    <main className="min-h-screen bg-white pb-20 font-sans text-gray-900 selection:bg-[#005871] selection:text-white">
+      <div className="bg-black pb-2 shadow-sm sticky top-0 z-50 border-b border-white/10">
+         <Navbar theme="dark" />
+      </div>
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         
@@ -238,11 +226,11 @@ function CheckoutContent() {
                     </p>
                     <button 
                         onClick={handlePayment}
-                        disabled={processing || (paymentMethod === 'mpesa' && phoneNumber.length < 10)}
-                        className="w-full bg-nearlink text-black h-14 rounded-xl font-black text-lg hover:scale-[1.01] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={bookingLoading || (paymentMethod === 'mpesa' && phoneNumber.length < 10)}
+                        className="w-full bg-[#005871] text-white h-14 rounded-xl font-black text-lg hover:bg-[#00485d] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {processing ? <Loader2 className="animate-spin"/> : <CheckCircle size={20}/>}
-                        {processing ? "Processing..." : `Confirm and Pay KSh ${total.toLocaleString()}`}
+                        {bookingLoading ? <Loader2 className="animate-spin"/> : <CheckCircle size={20}/>}
+                        {bookingLoading ? "Processing..." : `Confirm and Pay KSh ${total.toLocaleString()}`}
                     </button>
                 </section>
 
@@ -257,6 +245,7 @@ function CheckoutContent() {
                         <img 
                             src={item.images?.[0] || item.imageUrl || item.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"} 
                             className="w-24 h-24 rounded-xl object-cover"
+                            alt="Property"
                         />
                         <div>
                             <p className="text-xs text-gray-500">{type === 'activity' ? 'Experience' : 'Entire home'}</p>
@@ -273,7 +262,7 @@ function CheckoutContent() {
                     <h3 className="font-bold text-lg mb-4">Price details</h3>
                     <div className="space-y-3 text-sm">
                         <div className="flex justify-between text-gray-600">
-                            <span>KSh {Number(item.price).toLocaleString()} x {count} {type === 'activity' ? 'people' : 'nights'}</span>
+                            <span>KSh {Number(item.price || item.pricePerNight).toLocaleString()} x {count} {type === 'activity' ? 'people' : 'nights'}</span>
                             <span>KSh {basePrice.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-gray-600">
@@ -307,7 +296,7 @@ function CheckoutContent() {
 // ✅ WRAPPER FOR SUSPENSE
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin text-nearlink"/></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin text-black"/></div>}>
       <CheckoutContent />
     </Suspense>
   );

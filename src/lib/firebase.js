@@ -1,4 +1,3 @@
-// src/lib/firebase.js
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -14,10 +13,11 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID // Optional: For Analytics
 };
 
 // 2. Initialize App (Singleton Pattern)
+// This prevents "Firebase App named '[DEFAULT]' already exists" errors during hot-reload
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // 3. Initialize Services
@@ -27,9 +27,11 @@ const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 // 4. Initialize Functions (Region: africa-south1)
+// ⚠️ CRITICAL: This must match the region where you deployed your Python/Node backend functions
 const functions = getFunctions(app, "africa-south1");
 
 // 5. Initialize Analytics (Client-side only)
+// Next.js runs on the server too, where 'window' is undefined. This check prevents crashes.
 let analytics;
 if (typeof window !== "undefined") {
   isSupported().then((yes) => {
