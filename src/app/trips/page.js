@@ -1,180 +1,156 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { 
-  Calendar, MapPin, ChevronRight, Ban, Receipt, Home, 
-  XCircle, MessageCircle, Loader2, Plane
-} from 'lucide-react';
-import Link from 'next/link';
+import { doc, getDoc } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useBooking } from '@/hooks/useBooking'; // Using our hook for cancellations
+import { Loader2, ArrowLeft, MapPin, Calendar, User, MessageSquare, Ban } from 'lucide-react';
 
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
-
-export default function TripsPage() {
+export default function TripDetailsPage() {
+  const { id } = useParams();
   const { user, loading: authLoading } = useAuth();
+  const { cancelReservation, loading: actionLoading } = useBooking();
   const router = useRouter();
-
-  // --- STATE ---
-  const [activeTab, setActiveTab] = useState('upcoming');
-  const [bookings, setBookings] = useState([]);
+  
+  const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // --- FETCH BOOKINGS ---
   useEffect(() => {
-    const fetchBookings = async () => {
-      if (!user) return;
-      setLoading(true);
+    if (!authLoading && !user) return router.push('/login');
+
+    const fetchBooking = async () => {
       try {
-        // Query: Get all bookings for this user, sorted by creation date
-        const q = query(
-          collection(db, 'bookings'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-        const snapshot = await getDocs(q);
-        const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setBookings(list);
-      } catch (error) {
-        console.error("Error fetching trips:", error);
+        const docRef = doc(db, 'bookings', id);
+        const snapshot = await getDoc(docRef);
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          setBooking({
+            id: snapshot.id,
+            ...data,
+            checkIn: data.checkIn?.toDate ? data.checkIn.toDate() : new Date(data.checkIn),
+            checkOut: data.checkOut?.toDate ? data.checkOut.toDate() : new Date(data.checkOut),
+          });
+        }
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (!authLoading) {
-      if (user) {
-        fetchBookings();
-      } else {
-        router.push('/login');
-      }
+    if (user) fetchBooking();
+  }, [id, user, authLoading, router]);
+
+  const handleCancel = async () => {
+    const confirm = window.confirm("Are you sure you want to cancel this booking? Refunds are subject to the cancellation policy.");
+    if (!confirm) return;
+
+    const success = await cancelReservation(id, "User requested cancellation via web");
+    if (success) {
+      alert("Booking cancelled successfully.");
+      router.refresh(); // Refresh to update status
+    } else {
+      alert("Failed to cancel booking.");
     }
-  }, [user, authLoading, router]);
-
-  // --- FILTER LOGIC ---
-  const getFilteredTrips = () => {
-    const now = new Date();
-    return bookings.filter(trip => {
-      // Convert Firestore Timestamp to JS Date
-      const checkInDate = trip.checkIn?.seconds ? new Date(trip.checkIn.seconds * 1000) : new Date(trip.checkIn);
-      const isCancelled = trip.status === 'cancelled';
-
-      if (activeTab === 'cancelled') return isCancelled;
-      if (activeTab === 'past') return !isCancelled && checkInDate < now;
-      // Default 'upcoming'
-      return !isCancelled && checkInDate >= now;
-    });
   };
 
-  const filteredTrips = getFilteredTrips();
-
-  if (authLoading || loading) {
-    return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin w-10 h-10 text-nearlink"/></div>;
-  }
+  if (loading || authLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin"/></div>;
+  if (!booking) return <div className="min-h-screen flex items-center justify-center">Booking not found</div>;
 
   return (
-    <main className="min-h-screen bg-[#F8F9FA] pb-20">
-      <div className="bg-white border-b border-gray-100"><Navbar /></div>
+    <main className="min-h-screen bg-white pb-20">
+      <div className="bg-black pb-2 shadow-sm sticky top-0 z-50 border-b border-white/10">
+         <Navbar theme="dark" />
+      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        
-        <h1 className="text-3xl font-black text-gray-900 mb-8">Trips</h1>
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        <Link href="/trips" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-black mb-8">
+            <ArrowLeft size={16}/> Back to Trips
+        </Link>
 
-        {/* TABS */}
-        <div className="flex border-b border-gray-200 mb-8 overflow-x-auto no-scrollbar">
-            {['upcoming', 'past', 'cancelled'].map((tab) => (
-                <button 
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-6 py-3 font-bold text-sm capitalize whitespace-nowrap transition-all border-b-2 ${activeTab === tab ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
-                >
-                    {tab}
-                </button>
-            ))}
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
+            <h1 className="text-3xl font-black">{booking.propertyName}</h1>
+            <div className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                {booking.status}
+            </div>
         </div>
 
-        {/* CONTENT */}
-        <div className="space-y-6">
-            {filteredTrips.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        {activeTab === 'cancelled' ? <Ban className="text-gray-400"/> : <Plane className="text-gray-400"/>}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            
+            {/* Left: Details */}
+            <div className="md:col-span-2 space-y-8">
+                <img 
+                    src={booking.propertyImage || "https://images.unsplash.com/photo-1570129477492-45c003edd2be"} 
+                    className="w-full h-64 object-cover rounded-2xl bg-gray-100"
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-xl">
+                        <p className="text-xs text-gray-500 uppercase font-bold mb-1">Check-in</p>
+                        <p className="font-bold text-lg">{booking.checkIn.toDateString()}</p>
+                        <p className="text-sm">2:00 PM</p>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900">No {activeTab} trips</h3>
-                    <p className="text-gray-500 mb-6">
-                        {activeTab === 'upcoming' 
-                            ? "Time to dust off your bags and start planning your next adventure." 
-                            : `You don't have any ${activeTab} trips.`}
-                    </p>
-                    {activeTab === 'upcoming' && (
-                        <button onClick={() => router.push('/')} className="bg-black text-white px-6 py-3 rounded-full font-bold text-sm">
-                            Start Exploring
+                    <div className="bg-gray-50 p-4 rounded-xl">
+                        <p className="text-xs text-gray-500 uppercase font-bold mb-1">Check-out</p>
+                        <p className="font-bold text-lg">{booking.checkOut.toDateString()}</p>
+                        <p className="text-sm">11:00 AM</p>
+                    </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-8">
+                    <h3 className="font-bold text-lg mb-4">Reservation Details</h3>
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4 text-gray-600">
+                            <User size={20}/>
+                            <span>{booking.guests} Guests</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-gray-600">
+                            <MapPin size={20}/>
+                            <span>{booking.location || "Location not provided"}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-gray-600">
+                            <Calendar size={20}/>
+                            <span>Confirmation Code: <span className="font-mono text-black font-bold text-sm ml-2">#{booking.id.substring(0, 8).toUpperCase()}</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="space-y-6">
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <h3 className="font-bold mb-4">Total Cost</h3>
+                    <p className="text-3xl font-black mb-1">KES {(booking.priceBreakdown?.totalAmount || booking.totalAmount).toLocaleString()}</p>
+                    <p className="text-sm text-green-600 font-bold mb-6">Paid via {booking.paymentMethod || 'Paystack'}</p>
+                    
+                    <button className="w-full bg-black text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 mb-3">
+                        <MessageSquare size={18}/> Message Host
+                    </button>
+                    
+                    {booking.status !== 'cancelled' && (
+                        <button 
+                            onClick={handleCancel}
+                            disabled={actionLoading}
+                            className="w-full bg-white border border-red-200 text-red-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-50 transition"
+                        >
+                            {actionLoading ? <Loader2 className="animate-spin"/> : <Ban size={18}/>}
+                            Cancel Booking
                         </button>
                     )}
                 </div>
-            ) : (
-                filteredTrips.map((trip) => (
-                    <div key={trip.id} className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col md:flex-row gap-6 hover:shadow-md transition group">
-                        
-                        {/* Image Thumbnail */}
-                        <div className="w-full md:w-48 h-32 bg-gray-100 rounded-xl overflow-hidden relative shrink-0">
-                            {/* We don't save the image in booking usually, so use a placeholder or the one if saved */}
-                            {trip.propertyImage ? (
-                                <img src={trip.propertyImage} className="w-full h-full object-cover"/>
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400"><Home size={24}/></div>
-                            )}
-                        </div>
+                
+                <div className="bg-blue-50 p-6 rounded-2xl text-blue-900 text-sm">
+                    <p className="font-bold mb-2">Need Help?</p>
+                    <p>Contact NearLink support with your reference ID: <strong>{booking.id.substring(0, 8).toUpperCase()}</strong></p>
+                </div>
+            </div>
 
-                        {/* Trip Info */}
-                        <div className="flex-1">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-gray-900 line-clamp-1">{trip.propertyName || "Trip"}</h3>
-                                <span className="font-mono text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                                    {trip.id.substring(0, 6).toUpperCase()}
-                                </span>
-                            </div>
-                            
-                            <p className="text-gray-500 text-sm mb-4">{trip.location || "Nairobi"}</p>
-                            
-                            <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-700 bg-gray-50 p-3 rounded-xl w-fit">
-                                <div className="flex items-center gap-2">
-                                    <Calendar size={16} className="text-gray-400"/>
-                                    <span>
-                                        {trip.checkIn?.seconds 
-                                            ? new Date(trip.checkIn.seconds * 1000).toLocaleDateString() 
-                                            : trip.checkIn} 
-                                        {' - '}
-                                        {trip.checkOut?.seconds 
-                                            ? new Date(trip.checkOut.seconds * 1000).toLocaleDateString() 
-                                            : trip.checkOut}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-row md:flex-col justify-between items-end gap-2 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6 shrink-0">
-                            <div className="text-right hidden md:block">
-                                <p className="text-xs text-gray-400 uppercase font-bold">Total</p>
-                                <p className="font-black text-lg">KES {trip.totalAmount?.toLocaleString()}</p>
-                            </div>
-                            
-                            <Link href={`/trips/${trip.id}`} className="w-full md:w-auto">
-                                <button className="w-full bg-black text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-gray-800 transition">
-                                    View Details <ChevronRight size={16}/>
-                                </button>
-                            </Link>
-                        </div>
-
-                    </div>
-                ))
-            )}
         </div>
-
       </div>
       <Footer />
     </main>
