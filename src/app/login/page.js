@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation'; // ✅ Added useSearchParams
+import { useRouter, useSearchParams } from 'next/navigation'; 
 import { useAuth } from '@/context/AuthContext'; 
 import { 
   Eye, EyeOff, ArrowRight, Lock, Mail, Chrome, Smartphone, 
@@ -17,7 +17,8 @@ const WELCOME_QUOTES = [
   { text: "We connect you to the places that matter.", author: "NearLink Host" }
 ];
 
-export default function LoginPage() {
+// 1. We moved the main logic into this inner component
+function LoginContent() {
   // --- STATE ---
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +30,7 @@ export default function LoginPage() {
   // --- HOOKS ---
   const { user, login, googleLogin, appleLogin } = useAuth() || {};
   const router = useRouter();
-  const searchParams = useSearchParams(); // ✅ Get URL parameters
+  const searchParams = useSearchParams(); // This is what caused the build error before
 
   // Get the return URL or default to Home ('/')
   const returnUrl = searchParams.get('returnUrl') || '/';
@@ -37,7 +38,7 @@ export default function LoginPage() {
   // --- AUTO-REDIRECT ---
   useEffect(() => {
     if (user) {
-      router.push(returnUrl); // ✅ Redirects to previous page if it exists
+      router.push(returnUrl); 
     }
   }, [user, router, returnUrl]);
 
@@ -72,7 +73,7 @@ export default function LoginPage() {
     try {
       if (!login) throw new Error("Auth system is initializing. Please wait...");
       await login(formData.email, formData.password);
-      router.push(returnUrl); // ✅ Redirect to returnUrl
+      router.push(returnUrl); 
     } catch (err) {
       handleAuthError(err);
       setIsLoading(false); 
@@ -92,7 +93,7 @@ export default function LoginPage() {
          if (!appleLogin) throw new Error("Apple Login not ready");
          await appleLogin();
       }
-      router.push(returnUrl); // ✅ Redirect to returnUrl
+      router.push(returnUrl); 
     } catch (err) {
       handleAuthError(err);
       setIsLoading(false);
@@ -290,5 +291,18 @@ export default function LoginPage() {
       </div>
 
     </main>
+  );
+}
+
+// 2. This Main Component Wraps the Content in Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="animate-spin w-10 h-10 text-black" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
