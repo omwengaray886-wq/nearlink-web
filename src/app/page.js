@@ -95,6 +95,32 @@ const MOCK_RECENT = [
     { id: 3, label: "Restaurants in Westlands", icon: UtensilsCrossed },
 ];
 
+// --- HELPER COMPONENT (Defined outside Home to prevent re-renders) ---
+const GuestCounter = ({ label, desc, value, field, setGuests }) => (
+  <div className="flex justify-between items-center py-4 border-b border-gray-100 last:border-0">
+    <div>
+      <h4 className="font-bold text-sm text-gray-900">{label}</h4>
+      <p className="text-xs text-gray-500">{desc}</p>
+    </div>
+    <div className="flex items-center gap-3">
+      <button 
+        onClick={(e) => { e.stopPropagation(); setGuests(prev => ({...prev, [field]: Math.max(0, prev[field]-1)}))}}
+        className={`w-8 h-8 rounded-full border flex items-center justify-center ${value === 0 ? 'border-gray-200 text-gray-200' : 'border-gray-400 text-gray-600 hover:border-[#005871] hover:text-[#005871]'}`}
+        disabled={value === 0}
+      >
+        <Minus size={14}/>
+      </button>
+      <span className="w-4 text-center text-sm font-medium">{value}</span>
+      <button 
+        onClick={(e) => { e.stopPropagation(); setGuests(prev => ({...prev, [field]: prev[field]+1}))}}
+        className="w-8 h-8 rounded-full border border-gray-400 text-gray-600 hover:border-[#005871] hover:text-[#005871] flex items-center justify-center"
+      >
+        <Plus size={14}/>
+      </button>
+    </div>
+  </div>
+);
+
 export default function Home() {
   const router = useRouter(); 
   const { user } = useAuth() || {}; 
@@ -147,7 +173,7 @@ export default function Home() {
                     rating: d.rating || "New"
                   };
                 });
-            } catch (err) { console.warn("Stays fetch error (collection might be missing):", err); }
+            } catch (err) { console.warn("Stays fetch error:", err); }
 
             // 2. Fetch Experiences
             let experiences = [];
@@ -272,31 +298,6 @@ export default function Home() {
 
   const displayedItems = getFilteredItems();
 
-  const GuestCounter = ({ label, desc, value, field }) => (
-    <div className="flex justify-between items-center py-4 border-b border-gray-100 last:border-0">
-      <div>
-        <h4 className="font-bold text-sm text-gray-900">{label}</h4>
-        <p className="text-xs text-gray-500">{desc}</p>
-      </div>
-      <div className="flex items-center gap-3">
-        <button 
-          onClick={(e) => { e.stopPropagation(); setGuests(prev => ({...prev, [field]: Math.max(0, prev[field]-1)}))}}
-          className={`w-8 h-8 rounded-full border flex items-center justify-center ${value === 0 ? 'border-gray-200 text-gray-200' : 'border-gray-400 text-gray-600 hover:border-[#005871] hover:text-[#005871]'}`}
-          disabled={value === 0}
-        >
-          <Minus size={14}/>
-        </button>
-        <span className="w-4 text-center text-sm font-medium">{value}</span>
-        <button 
-          onClick={(e) => { e.stopPropagation(); setGuests(prev => ({...prev, [field]: prev[field]+1}))}}
-          className="w-8 h-8 rounded-full border border-gray-400 text-gray-600 hover:border-[#005871] hover:text-[#005871] flex items-center justify-center"
-        >
-          <Plus size={14}/>
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <main className="min-h-screen bg-gray-50/50 font-sans text-gray-900 selection:bg-[#005871] selection:text-white pb-0">
       
@@ -324,7 +325,9 @@ export default function Home() {
               <img 
                 src="https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668" 
                 className="w-full h-full object-cover scale-110 motion-safe:animate-slow-pan" 
-                alt="Hero" 
+                alt="Hero"
+                loading="eager" // ✅ Ensures background loads instantly
+                priority="true"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-[#002c38]/70 via-black/20 to-gray-50/20"></div>
           </div>
@@ -352,7 +355,6 @@ export default function Home() {
                   {user?.name ? (
                     `Welcome back, ${user.name.split(' ')[0]}.`
                   ) : (
-                    /* Fallback to Category Slogan if no name */
                     HERO_TEXTS[activeCategory] || "Wake up Here."
                   )}
               </h1>
@@ -421,9 +423,9 @@ export default function Home() {
                       <UserCheck className={`absolute right-4 top-1/2 -translate-y-1/2 transition ${activeSearchField === 'guests' ? 'text-[#005871]' : 'text-gray-300'}`} size={20}/>
                       {activeSearchField === 'guests' && (
                         <div className="absolute top-full right-0 mt-4 w-full md:w-[350px] bg-white rounded-3xl shadow-2xl p-6 animate-in fade-in slide-in-from-top-2 cursor-default z-50">
-                           <GuestCounter label="Adults" desc="Ages 13 or above" value={guests.adults} field="adults" />
-                           <GuestCounter label="Children" desc="Ages 2 – 12" value={guests.children} field="children" />
-                           <GuestCounter label="Infants" desc="Under 2" value={guests.infants} field="infants" />
+                           <GuestCounter label="Adults" desc="Ages 13 or above" value={guests.adults} field="adults" setGuests={setGuests} />
+                           <GuestCounter label="Children" desc="Ages 2 – 12" value={guests.children} field="children" setGuests={setGuests} />
+                           <GuestCounter label="Infants" desc="Under 2" value={guests.infants} field="infants" setGuests={setGuests} />
                         </div>
                       )}
                   </div>
