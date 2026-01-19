@@ -13,7 +13,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID // Optional: For Analytics
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID // Optional
 };
 
 // 2. Initialize App (Singleton Pattern)
@@ -23,15 +23,14 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // 3. Initialize Services
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+const storage = getStorage(app); // <--- Vital for your Image Upload feature
 const googleProvider = new GoogleAuthProvider();
 
 // 4. Initialize Functions (Region: africa-south1)
-// ⚠️ CRITICAL: This must match the region where you deployed your Python/Node backend functions
+// Ensure your Firebase Functions are actually deployed to this region, otherwise remove the 2nd argument.
 const functions = getFunctions(app, "africa-south1");
 
 // 5. Initialize Analytics (Client-side only)
-// Next.js runs on the server too, where 'window' is undefined. This check prevents crashes.
 let analytics;
 if (typeof window !== "undefined") {
   isSupported().then((yes) => {
@@ -41,4 +40,5 @@ if (typeof window !== "undefined") {
   }).catch((err) => console.error("Analytics init error:", err));
 }
 
+// 6. Export Services
 export { app, auth, db, storage, functions, analytics, googleProvider };
