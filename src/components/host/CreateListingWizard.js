@@ -5,82 +5,125 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, Building, Hotel, ChevronRight, ChevronLeft, 
   Upload, Check, X, Wifi, Coffee, Tv, Car, Wind, MapPin, 
-  Image as ImageIcon, Utensils, Calendar, Map, Bus, Tent, Music, Briefcase
+  Image as ImageIcon, Utensils, Calendar, Map, Bus, Tent, 
+  Music, Briefcase, Key, Shield, Info, DollarSign, Clock, 
+  Users, Fuel, Globe, Award, AlertCircle
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 import ImageUpload from '@/components/ImageUpload';
 
-// --- 1. DEFINE THE 6 MAIN LISTING TYPES ---
+// --- 1. LISTING TYPES ---
 const LISTING_TYPES = [
   { id: 'stay', label: 'Stays', icon: Home, desc: 'Homes, hotels, & apartments' },
-  { id: 'experience', label: 'Experiences', icon: Tent, desc: 'Tours, hikes, & activities' },
   { id: 'transport', label: 'Transport', icon: Car, desc: 'Car rentals & shuttles' },
-  { id: 'food', label: 'Food', icon: Utensils, desc: 'Restaurants & home chefs' },
+  { id: 'food', label: 'Food & Drink', icon: Utensils, desc: 'Restaurants & home chefs' },
+  { id: 'experience', label: 'Experiences', icon: Tent, desc: 'Tours, hikes, & adventures' },
+  { id: 'event', label: 'Events', icon: Calendar, desc: 'Parties, concerts, & meetups' },
   { id: 'guide', label: 'Travel Guide', icon: Map, desc: 'Local experts & fixers' },
-  { id: 'event', label: 'Events', icon: Calendar, desc: 'Parties, meetups, & shows' },
 ];
 
-// --- 2. DEFINE SUB-CATEGORIES (Dynamic based on Type) ---
+// --- 2. SUB-CATEGORIES ---
 const SUB_CATEGORIES = {
   stay: [
-    { id: 'apartment', label: 'Apartment' }, { id: 'house', label: 'House' }, { id: 'hotel', label: 'Hotel' }
-  ],
-  experience: [
-    { id: 'adventure', label: 'Adventure' }, { id: 'cultural', label: 'Cultural' }, { id: 'workshop', label: 'Workshop' }
+    { id: 'house', label: 'Entire House' }, { id: 'apartment', label: 'Apartment' }, 
+    { id: 'hotel', label: 'Boutique Hotel' }, { id: 'villa', label: 'Luxury Villa' }
   ],
   transport: [
-    { id: 'suv', label: 'SUV' }, { id: 'sedan', label: 'Sedan' }, { id: 'bus', label: 'Bus/Van' }
+    { id: 'suv', label: 'SUV / 4x4' }, { id: 'sedan', label: 'Saloon / Sedan' }, 
+    { id: 'van', label: 'Safari Van' }, { id: 'bus', label: 'Bus / Coach' },
+    { id: 'bike', label: 'Motorbike' }
   ],
   food: [
-    { id: 'restaurant', label: 'Restaurant' }, { id: 'delivery', label: 'Delivery Only' }, { id: 'private_chef', label: 'Private Chef' }
+    { id: 'restaurant', label: 'Restaurant' }, { id: 'cafe', label: 'Cafe / Bistro' }, 
+    { id: 'bar', label: 'Bar / Lounge' }, { id: 'chef', label: 'Private Chef' }
   ],
-  guide: [
-    { id: 'tour', label: 'Tour Guide' }, { id: 'translator', label: 'Translator' }, { id: 'driver', label: 'Driver/Guide' }
+  experience: [
+    { id: 'hiking', label: 'Hiking / Trekking' }, { id: 'safari', label: 'Safari Game Drive' }, 
+    { id: 'culture', label: 'Cultural Tour' }, { id: 'workshop', label: 'Class / Workshop' }
   ],
   event: [
-    { id: 'party', label: 'Party' }, { id: 'conference', label: 'Conference' }, { id: 'concert', label: 'Concert' }
+    { id: 'concert', label: 'Concert / Show' }, { id: 'party', label: 'Nightlife / Party' }, 
+    { id: 'conference', label: 'Business / Networking' }
+  ],
+  guide: [
+    { id: 'tour_guide', label: 'Certified Tour Guide' }, { id: 'driver_guide', label: 'Driver Guide' }, 
+    { id: 'translator', label: 'Translator / Fixer' }
   ]
 };
 
-// --- 3. AMENITIES (General) ---
-const COMMON_AMENITIES = [
-  { id: 'wifi', label: 'Wifi', icon: Wifi },
-  { id: 'parking', label: 'Parking', icon: Car },
-  { id: 'ac', label: 'AC', icon: Wind },
-];
+// --- 3. AMENITIES MAP (Category Specific) ---
+const AMENITY_MAP = {
+    stay: [
+        { id: 'wifi', label: 'Wifi' }, { id: 'pool', label: 'Pool' }, { id: 'ac', label: 'AC' },
+        { id: 'kitchen', label: 'Kitchen' }, { id: 'tv', label: 'TV' }, { id: 'parking', label: 'Parking' }
+    ],
+    transport: [
+        { id: 'ac', label: 'AC' }, { id: 'bluetooth', label: 'Bluetooth Audio' }, 
+        { id: 'leather', label: 'Leather Seats' }, { id: 'tinted', label: 'Tinted Windows' },
+        { id: 'rack', label: 'Roof Rack' }, { id: 'driver', label: 'Chauffeur Included' }
+    ],
+    food: [
+        { id: 'wifi', label: 'Wifi' }, { id: 'outdoor', label: 'Outdoor Seating' }, 
+        { id: 'parking', label: 'Parking' }, { id: 'delivery', label: 'Delivery' },
+        { id: 'vegan', label: 'Vegan Options' }, { id: 'alcohol', label: 'Alcohol Served' }
+    ],
+    experience: [
+        { id: 'transport', label: 'Transport Included' }, { id: 'food', label: 'Food Included' }, 
+        { id: 'gear', label: 'Gear Provided' }, { id: 'family', label: 'Family Friendly' }
+    ],
+    event: [
+        { id: 'vip', label: 'VIP Area' }, { id: 'parking', label: 'Secure Parking' }, 
+        { id: 'food', label: 'Food Available' }, { id: '18plus', label: '18+ Only' }
+    ],
+    guide: [
+        { id: 'licensed', label: 'Licensed' }, { id: 'vehicle', label: 'Has Vehicle' }, 
+        { id: 'firstaid', label: 'First Aid Trained' }
+    ]
+};
 
 export default function CreateListingWizard({ onClose, onSuccess, initialData }) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
-  // --- STATE MANAGEMENT ---
+  // --- ROBUST STATE ---
   const [data, setData] = useState({
-    type: initialData?.type || '', // New field: 'stay', 'food', etc.
+    type: initialData?.type || '', 
     category: initialData?.category || '',
     title: initialData?.title || '',
     description: initialData?.description || '',
-    location: initialData?.location || { city: '', street: '' },
-    // Dynamic details object to handle different needs
+    location: initialData?.location || { street: '', city: '', state: '' },
+    // Expanded Details for ALL types
     details: initialData?.details || { 
-      guests: 1, bedrooms: 1, bathrooms: 1, // Stay
-      seats: 4, transmission: 'Auto', // Transport
-      date: '', capacity: 100, // Event
-      cuisine: '', openingTime: '' // Food
+      // Stay
+      guests: 2, bedrooms: 1, beds: 1, bathrooms: 1, size: '',
+      checkInTime: '14:00', checkOutTime: '11:00',
+      // Transport
+      make: '', model: '', year: '', fuelType: 'Petrol', transmission: 'Automatic', seats: 4, withDriver: false,
+      // Food
+      cuisine: '', dietary: [], openingTime: '', closingTime: '',
+      // Experience & Guide
+      difficulty: 'Moderate', duration: 2, languages: '', groupSize: 10,
+      // Event
+      date: '', startTime: '', ageLimit: '18+',
+      // Common
+      cleaningFee: '', securityDeposit: ''
     },
     amenities: initialData?.amenities || [],
-    price: initialData?.pricePerNight || '', // Generic price field
+    price: initialData?.price || '', 
     imageUrl: initialData?.images?.[0] || ''
   });
 
-  const updateData = (key, value) => {
-    setData(prev => ({ ...prev, [key]: value }));
-  };
-
+  const updateData = (key, value) => setData(prev => ({ ...prev, [key]: value }));
+  
   const updateDetail = (key, value) => {
     setData(prev => ({ ...prev, details: { ...prev.details, [key]: value } }));
+  };
+
+  const updateLocation = (key, value) => {
+    setData(prev => ({ ...prev, location: { ...prev.location, [key]: value } }));
   };
 
   const toggleAmenity = (id) => {
@@ -100,19 +143,15 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     try {
       const payload = {
         ...data,
-        pricePerNight: Number(data.price), // Keeping db field consistent for now
+        price: Number(data.price),
         images: data.imageUrl ? [data.imageUrl] : ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
         ...(initialData ? {} : {
             hostId: user.uid,
-            host: {
-               name: user.name || "Host",
-               image: user.image || "https://github.com/shadcn.png",
-               joined: new Date().getFullYear().toString(),
-            },
+            hostName: user.name || "Host",
+            hostImage: user.image || "https://github.com/shadcn.png",
             status: 'active',
             createdAt: serverTimestamp(),
-            rating: "New",
-            reviewCount: 0,
+            rating: 0,
             views: 0
         }),
       };
@@ -131,75 +170,94 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     }
   };
 
-  // --- DYNAMIC RENDERERS ---
-
-  // Renders the specific inputs for Step 2 based on Listing Type
-  const renderDetailsStep = () => {
-    switch (data.type) {
-      case 'stay':
-        return (
-          <div className="space-y-6">
-             <h3 className="font-bold text-black">Accommodation Details</h3>
-             {['guests', 'bedrooms', 'bathrooms'].map(key => (
-                <div key={key} className="flex items-center justify-between">
-                    <span className="capitalize text-black font-medium">{key}</span>
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => updateDetail(key, Math.max(0, data.details[key]-1))} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-black hover:bg-gray-100">-</button>
-                        <span className="w-4 text-center text-black font-bold">{data.details[key]}</span>
-                        <button onClick={() => updateDetail(key, data.details[key]+1)} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-black hover:bg-gray-100">+</button>
-                    </div>
+  // --- 1. STAY FORM ---
+  const renderStayDetails = () => (
+    <div className="space-y-6">
+       <h3 className="font-bold text-black flex items-center gap-2"><Home size={18}/> Home Details</h3>
+       <div className="grid grid-cols-2 gap-4">
+          {['guests', 'bedrooms', 'beds', 'bathrooms'].map(key => (
+             <div key={key} className="border border-gray-200 p-3 rounded-xl">
+                <span className="text-xs text-gray-500 uppercase font-bold">{key}</span>
+                <div className="flex items-center justify-between mt-2">
+                    <button onClick={() => updateDetail(key, Math.max(0, data.details[key]-1))} className="w-6 h-6 rounded-full bg-gray-100 text-black">-</button>
+                    <span className="font-bold text-black">{data.details[key]}</span>
+                    <button onClick={() => updateDetail(key, data.details[key]+1)} className="w-6 h-6 rounded-full bg-black text-white">+</button>
                 </div>
-             ))}
+             </div>
+          ))}
+       </div>
+       <div className="grid grid-cols-2 gap-4">
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Check-in</label><input type="time" value={data.details.checkInTime} onChange={e => updateDetail('checkInTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Check-out</label><input type="time" value={data.details.checkOutTime} onChange={e => updateDetail('checkOutTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+       </div>
+    </div>
+  );
+
+  // --- 2. TRANSPORT FORM ---
+  const renderTransportDetails = () => (
+    <div className="space-y-6">
+       <h3 className="font-bold text-black flex items-center gap-2"><Car size={18}/> Vehicle Specs</h3>
+       <div className="grid grid-cols-2 gap-4">
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Brand / Make</label><input placeholder="e.g. Toyota" value={data.details.make} onChange={e => updateDetail('make', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Model</label><input placeholder="e.g. Prado" value={data.details.model} onChange={e => updateDetail('model', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+       </div>
+       <div className="grid grid-cols-3 gap-4">
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Year</label><input type="number" placeholder="2018" value={data.details.year} onChange={e => updateDetail('year', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          <div>
+             <label className="text-xs font-bold text-gray-500 uppercase">Fuel</label>
+             <select value={data.details.fuelType} onChange={e => updateDetail('fuelType', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white">
+                <option>Petrol</option><option>Diesel</option><option>Electric</option>
+             </select>
           </div>
-        );
-      case 'transport':
-        return (
-          <div className="space-y-4">
-             <h3 className="font-bold text-black">Vehicle Details</h3>
-             <div>
-               <label className="text-xs font-bold text-gray-500 uppercase">Seats</label>
-               <input type="number" value={data.details.seats} onChange={e => updateDetail('seats', e.target.value)} className="w-full p-3 border border-gray-300 rounded-xl text-black bg-white"/>
-             </div>
-             <div>
-               <label className="text-xs font-bold text-gray-500 uppercase">Transmission</label>
-               <select value={data.details.transmission} onChange={e => updateDetail('transmission', e.target.value)} className="w-full p-3 border border-gray-300 rounded-xl text-black bg-white">
-                 <option>Automatic</option><option>Manual</option>
-               </select>
-             </div>
+          <div>
+             <label className="text-xs font-bold text-gray-500 uppercase">Gearbox</label>
+             <select value={data.details.transmission} onChange={e => updateDetail('transmission', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white">
+                <option>Automatic</option><option>Manual</option>
+             </select>
           </div>
-        );
-      case 'event':
-        return (
-          <div className="space-y-4">
-             <h3 className="font-bold text-black">Event Details</h3>
-             <div>
-               <label className="text-xs font-bold text-gray-500 uppercase">Event Date</label>
-               <input type="date" value={data.details.date} onChange={e => updateDetail('date', e.target.value)} className="w-full p-3 border border-gray-300 rounded-xl text-black bg-white"/>
-             </div>
-             <div>
-               <label className="text-xs font-bold text-gray-500 uppercase">Capacity (People)</label>
-               <input type="number" value={data.details.capacity} onChange={e => updateDetail('capacity', e.target.value)} className="w-full p-3 border border-gray-300 rounded-xl text-black bg-white"/>
-             </div>
-          </div>
-        );
-      case 'food':
-        return (
-           <div className="space-y-4">
-             <h3 className="font-bold text-black">Restaurant Details</h3>
-             <div>
-               <label className="text-xs font-bold text-gray-500 uppercase">Cuisine Type</label>
-               <input placeholder="e.g. Italian, Swahili, Sushi" value={data.details.cuisine} onChange={e => updateDetail('cuisine', e.target.value)} className="w-full p-3 border border-gray-300 rounded-xl text-black bg-white"/>
-             </div>
-             <div>
-               <label className="text-xs font-bold text-gray-500 uppercase">Opening Hours</label>
-               <input placeholder="e.g. 8AM - 10PM" value={data.details.openingTime} onChange={e => updateDetail('openingTime', e.target.value)} className="w-full p-3 border border-gray-300 rounded-xl text-black bg-white"/>
-             </div>
-           </div>
-        );
-      default:
-        return <p className="text-gray-500 italic">No specific details required for this category. Continue to photos.</p>;
-    }
-  };
+       </div>
+       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+          <span className="font-bold text-black">Chauffeur / Driver Included?</span>
+          <input type="checkbox" checked={data.details.withDriver} onChange={e => updateDetail('withDriver', e.target.checked)} className="w-6 h-6 accent-black"/>
+       </div>
+    </div>
+  );
+
+  // --- 3. FOOD FORM ---
+  const renderFoodDetails = () => (
+    <div className="space-y-6">
+       <h3 className="font-bold text-black flex items-center gap-2"><Utensils size={18}/> Dining Details</h3>
+       <div><label className="text-xs font-bold text-gray-500 uppercase">Primary Cuisine</label><input placeholder="e.g. Italian, Swahili, Steakhouse" value={data.details.cuisine} onChange={e => updateDetail('cuisine', e.target.value)} className="w-full p-3 border rounded-lg text-black"/></div>
+       <div className="grid grid-cols-2 gap-4">
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Opening Time</label><input type="time" value={data.details.openingTime} onChange={e => updateDetail('openingTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Closing Time</label><input type="time" value={data.details.closingTime} onChange={e => updateDetail('closingTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+       </div>
+    </div>
+  );
+
+  // --- 4. EVENT FORM ---
+  const renderEventDetails = () => (
+    <div className="space-y-6">
+       <h3 className="font-bold text-black flex items-center gap-2"><Calendar size={18}/> Event Logistics</h3>
+       <div><label className="text-xs font-bold text-gray-500 uppercase">Event Date</label><input type="date" value={data.details.date} onChange={e => updateDetail('date', e.target.value)} className="w-full p-3 border rounded-lg text-black"/></div>
+       <div className="grid grid-cols-2 gap-4">
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Start Time</label><input type="time" value={data.details.startTime} onChange={e => updateDetail('startTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Age Restriction</label><select value={data.details.ageLimit} onChange={e => updateDetail('ageLimit', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white"><option>All Ages</option><option>18+</option><option>21+</option></select></div>
+       </div>
+    </div>
+  );
+
+  // --- 5. GUIDE/EXPERIENCE FORM ---
+  const renderExperienceDetails = () => (
+    <div className="space-y-6">
+       <h3 className="font-bold text-black flex items-center gap-2"><Map size={18}/> Activity Info</h3>
+       <div><label className="text-xs font-bold text-gray-500 uppercase">Languages Spoken</label><input placeholder="e.g. English, Swahili, French" value={data.details.languages} onChange={e => updateDetail('languages', e.target.value)} className="w-full p-3 border rounded-lg text-black"/></div>
+       <div className="grid grid-cols-2 gap-4">
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Duration (Hours)</label><input type="number" value={data.details.duration} onChange={e => updateDetail('duration', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Difficulty</label><select value={data.details.difficulty} onChange={e => updateDetail('difficulty', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white"><option>Easy</option><option>Moderate</option><option>Hard</option></select></div>
+       </div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 bg-white text-black z-[200] flex flex-col animate-in fade-in duration-300">
@@ -223,15 +281,14 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
 
       {/* BODY */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto py-12 px-6">
+        <div className="max-w-4xl mx-auto py-12 px-6">
           <AnimatePresence mode="wait">
             
-            {/* STEP 1: SELECT LISTING TYPE (NEW) */}
+            {/* STEP 1: TYPE */}
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <h1 className="text-3xl font-black mb-2 text-black">What are you listing today?</h1>
+                <h1 className="text-3xl font-black mb-2 text-black">What are you listing?</h1>
                 <p className="text-gray-500 mb-8">Choose the category that best describes your service.</p>
-                
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {LISTING_TYPES.map(type => (
                     <div 
@@ -248,16 +305,16 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
               </motion.div>
             )}
 
-            {/* STEP 2: SUB-CATEGORY & DETAILS (DYNAMIC) */}
+            {/* STEP 2: DETAILS */}
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <h1 className="text-3xl font-black mb-6 text-black">Tell us more about your {data.type || 'listing'}</h1>
+                <h1 className="text-3xl font-black mb-6 text-black">Property Details</h1>
                 
-                {/* 1. Sub-Category Selector */}
+                {/* SUB-CATEGORY */}
                 <div className="mb-8">
-                   <label className="text-sm font-bold uppercase text-gray-500 mb-3 block">Category</label>
+                   <label className="text-sm font-bold uppercase text-gray-500 mb-3 block">Sub-Category</label>
                    <div className="flex flex-wrap gap-3">
-                      {(SUB_CATEGORIES[data.type] || []).map(sub => (
+                      {(SUB_CATEGORIES[data.type] || SUB_CATEGORIES['stay']).map(sub => (
                         <button
                           key={sub.id}
                           onClick={() => updateData('category', sub.id)}
@@ -269,31 +326,33 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
                    </div>
                 </div>
 
-                {/* 2. Dynamic Details Form */}
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 mb-8">
-                    {renderDetailsStep()}
-                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* LEFT: DYNAMIC FORM */}
+                    <div className="bg-white p-5 rounded-2xl border border-gray-200">
+                        {data.type === 'stay' && renderStayDetails()}
+                        {data.type === 'transport' && renderTransportDetails()}
+                        {data.type === 'food' && renderFoodDetails()}
+                        {data.type === 'event' && renderEventDetails()}
+                        {(data.type === 'experience' || data.type === 'guide') && renderExperienceDetails()}
+                    </div>
 
-                {/* 3. Location */}
-                <div>
-                   <label className="text-sm font-bold uppercase text-gray-500 mb-3 block">Location</label>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border border-gray-300 p-4 rounded-xl flex items-center gap-3 bg-white">
-                          <MapPin size={20} className="text-gray-400"/>
-                          <input 
-                             placeholder="City" 
-                             value={data.location.city} 
-                             onChange={e => updateData('location', {...data.location, city: e.target.value})} 
-                             className="w-full outline-none font-medium text-black placeholder:text-gray-400"
-                          />
-                      </div>
-                      <input 
-                         placeholder="Street/Area" 
-                         value={data.location.street} 
-                         onChange={e => updateData('location', {...data.location, street: e.target.value})} 
-                         className="p-4 border border-gray-300 rounded-xl text-black bg-white placeholder:text-gray-400"
-                      />
-                   </div>
+                    {/* RIGHT: LOCATION & DESC */}
+                    <div className="space-y-6">
+                        <div className="bg-white p-5 rounded-2xl border border-gray-200">
+                            <h3 className="font-bold text-black mb-4 flex items-center gap-2"><MapPin size={18}/> Location</h3>
+                            <div className="space-y-3">
+                                <input placeholder="Street Address" value={data.location.street} onChange={e => updateLocation('street', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input placeholder="City" value={data.location.city} onChange={e => updateLocation('city', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
+                                    <input placeholder="State/County" value={data.location.state} onChange={e => updateLocation('state', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-200">
+                            <h3 className="font-bold text-black mb-4">Description</h3>
+                            <textarea value={data.description} onChange={e => updateData('description', e.target.value)} className="w-full h-32 p-3 border rounded-lg text-black resize-none" placeholder="Describe the experience, the vibe, and what to expect..."/>
+                        </div>
+                    </div>
                 </div>
               </motion.div>
             )}
@@ -301,62 +360,49 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
             {/* STEP 3: IMAGES */}
             {step === 3 && (
               <motion.div key="step3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <h1 className="text-3xl font-black mb-2 text-black">Showcase your {data.type}</h1>
-                <p className="text-gray-500 mb-8">Add photos to attract customers.</p>
+                <h1 className="text-3xl font-black mb-2 text-black">Visuals</h1>
+                <p className="text-gray-500 mb-8">Add high-quality photos to attract customers.</p>
                 <ImageUpload initialImage={data.imageUrl} onImageUploaded={(url) => updateData('imageUrl', url)} />
               </motion.div>
             )}
 
-            {/* STEP 4: AMENITIES/FEATURES */}
+            {/* STEP 4: AMENITIES */}
             {step === 4 && (
               <motion.div key="step4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <h1 className="text-3xl font-black mb-2 text-black">Features & Amenities</h1>
-                <p className="text-gray-500 mb-8">What comes included?</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-                  {COMMON_AMENITIES.map(item => (
+                <h1 className="text-3xl font-black mb-2 text-black">Features</h1>
+                <p className="text-gray-500 mb-8">What is included?</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {(AMENITY_MAP[data.type] || AMENITY_MAP['stay']).map(item => (
                     <div 
                       key={item.id}
                       onClick={() => toggleAmenity(item.id)}
-                      className={`p-4 border rounded-xl flex flex-col gap-3 cursor-pointer transition ${data.amenities.includes(item.id) ? 'border-black bg-gray-50 ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'}`}
+                      className={`p-4 border rounded-xl flex flex-col gap-3 cursor-pointer transition ${data.amenities.includes(item.id) ? 'border-black bg-gray-900 text-white' : 'border-gray-200 hover:border-gray-400 text-black'}`}
                     >
-                      <item.icon size={24} className="text-black"/>
-                      <span className="font-medium text-black">{item.label}</span>
+                      <Check size={24}/>
+                      <span className="font-medium">{item.label}</span>
                     </div>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* STEP 5: FINALIZE */}
+            {/* STEP 5: FINAL */}
             {step === 5 && (
                <motion.div key="step5" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                 <h1 className="text-3xl font-black mb-8 text-black">Review & Price</h1>
-                 
-                 <div className="space-y-6">
+                 <h1 className="text-3xl font-black mb-8 text-black">Final Details</h1>
+                 <div className="max-w-lg mx-auto space-y-6">
                     <div>
                         <label className="block text-sm font-bold text-gray-500 mb-2 uppercase">Listing Title</label>
-                        <input 
-                            value={data.title}
-                            onChange={(e) => updateData('title', e.target.value)}
-                            className="w-full text-2xl font-bold p-4 border border-gray-300 rounded-xl text-black bg-white"
-                            placeholder="e.g. Luxury Beach Villa / City Tour"
-                        />
+                        <input value={data.title} onChange={(e) => updateData('title', e.target.value)} className="w-full text-2xl font-bold p-4 border border-gray-300 rounded-xl text-black" placeholder="e.g. Modern Loft in CBD" />
                     </div>
-
                     <div>
                          <label className="block text-sm font-bold text-gray-500 mb-2 uppercase">Price (KES)</label>
                          <div className="relative">
                             <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">KES</span>
-                            <input 
-                                type="number" 
-                                value={data.price}
-                                onChange={(e) => updateData('price', e.target.value)}
-                                className="w-full text-4xl font-black p-4 pl-20 border border-gray-300 rounded-xl text-black bg-white outline-none focus:ring-2 ring-black/10"
-                                placeholder="0"
-                            />
+                            <input type="number" value={data.price} onChange={(e) => updateData('price', e.target.value)} className="w-full text-4xl font-black p-4 pl-20 border border-gray-300 rounded-xl text-black outline-none focus:ring-2 ring-black/10" placeholder="0" />
                          </div>
-                         <p className="text-sm text-gray-500 mt-2">
-                           {data.type === 'stay' ? 'per night' : data.type === 'event' ? 'per ticket' : 'per booking'}
+                         <p className="text-sm text-gray-500 mt-2 text-center">
+                           {data.type === 'stay' ? 'per night' : data.type === 'transport' ? 'per day' : 'per person'}
                          </p>
                     </div>
                  </div>
