@@ -13,7 +13,11 @@ import {
   Loader2, Calendar as CalendarIcon, Users, Wallet, CheckCircle, 
   XCircle, TrendingUp, MoreHorizontal, MapPin, Star, Settings, Bell, 
   ArrowUpRight, ArrowDownRight, Search, Filter, Download, Clock,
-  PlayCircle, Award, Lightbulb, Trash2, Eye, Pencil // <--- Added Pencil
+  PlayCircle, Award, Lightbulb, Trash2, Eye, Pencil, 
+  // 👇 Category Icons
+  Car, Utensils, Calendar, Map, Tent, 
+  // 👇 Detail Icons
+  Palette, Fuel, Gauge, ChefHat, Timer, Zap, Music
 } from 'lucide-react';
 
 import Navbar from '@/components/Navbar';
@@ -32,9 +36,9 @@ export default function HostPage() {
   const router = useRouter();
 
   // --- STATE ---
-  const [view, setView] = useState('dashboard'); // 'dashboard' | 'wizard'
+  const [view, setView] = useState('dashboard'); 
   const [activeTab, setActiveTab] = useState('overview'); 
-  const [editingProperty, setEditingProperty] = useState(null); // <--- NEW STATE FOR EDITING
+  const [editingProperty, setEditingProperty] = useState(null);
   
   // Data State
   const [myProperties, setMyProperties] = useState([]);
@@ -112,6 +116,63 @@ export default function HostPage() {
     }
   };
 
+  // --- HELPER: GET ICON FOR TYPE ---
+  const getTypeIcon = (type) => {
+    switch(type) {
+        case 'transport': return <Car size={18} className="text-blue-600"/>;
+        case 'food': return <Utensils size={18} className="text-orange-600"/>;
+        case 'event': return <Calendar size={18} className="text-purple-600"/>;
+        case 'experience': return <Tent size={18} className="text-pink-600"/>; 
+        case 'guide': return <Map size={18} className="text-teal-600"/>; 
+        default: return <Home size={18} className="text-green-600"/>; 
+    }
+  };
+
+  // --- HELPER: RENDER SMART DETAILS (NEW) ---
+  const renderSmartDetails = (prop) => {
+    const d = prop.details || {};
+    
+    switch(prop.type) {
+        case 'transport':
+            return (
+                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    {d.color && <span className="flex items-center gap-1"><Palette size={12}/> {d.color}</span>}
+                    {d.transmission && <span className="flex items-center gap-1"><Gauge size={12}/> {d.transmission}</span>}
+                    {d.fuelType && <span className="flex items-center gap-1"><Fuel size={12}/> {d.fuelType}</span>}
+                </div>
+            );
+        case 'food':
+            return (
+                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    {d.cuisine && <span className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-50 text-orange-700 rounded font-medium">{d.cuisine}</span>}
+                    {d.chefName && <span className="flex items-center gap-1"><ChefHat size={12}/> Chef {d.chefName}</span>}
+                </div>
+            );
+        case 'experience':
+            return (
+                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    {d.duration && <span className="flex items-center gap-1"><Timer size={12}/> {d.duration} Hrs</span>}
+                    {d.activityLevel && <span className="flex items-center gap-1"><Zap size={12}/> {d.activityLevel}</span>}
+                </div>
+            );
+        case 'event':
+            return (
+                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    {d.date && <span className="flex items-center gap-1"><CalendarIcon size={12}/> {d.date}</span>}
+                    {d.ageLimit && <span className="flex items-center gap-1"><Users size={12}/> {d.ageLimit}</span>}
+                </div>
+            );
+        default: // Stay
+            return (
+                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                    <span className="flex items-center gap-1">{d.guests || 2} Guests</span>
+                    <span className="flex items-center gap-1">•</span>
+                    <span className="flex items-center gap-1">{d.bedrooms || 1} Bedrooms</span>
+                </div>
+            );
+    }
+  };
+
   // --- COMPONENT: CALENDAR GRID ---
   const CalendarView = () => {
     const days = Array.from({ length: 30 }, (_, i) => i + 1);
@@ -179,7 +240,6 @@ export default function HostPage() {
                   <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 mr-4">
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> System Operational
                   </div>
-                  {/* UPDATE: Clear editing state when clicking create */}
                   <button onClick={() => { setEditingProperty(null); setView('wizard'); }} className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition shadow-lg">
                       <Plus size={16}/> Create Listing
                   </button>
@@ -249,7 +309,7 @@ export default function HostPage() {
                              {/* Small Listings Table */}
                              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                                 <div className="p-5 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
-                                    <h3 className="font-bold text-gray-900">Your Properties</h3>
+                                    <h3 className="font-bold text-gray-900">Your Listings</h3>
                                     <button onClick={() => handleTabClick('listings')} className="text-xs font-bold text-nearlink hover:underline cursor-pointer">View All</button>
                                 </div>
                                 <div className="overflow-x-auto">
@@ -257,8 +317,18 @@ export default function HostPage() {
                                         <tbody className="divide-y divide-gray-100">
                                             {myProperties.slice(0,3).map(prop => (
                                                 <tr key={prop.id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 font-bold">{prop.title}</td>
-                                                    <td className="px-6 py-4 text-right">KES {Number(prop.pricePerNight).toLocaleString()}</td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-gray-100 rounded-lg shrink-0">
+                                                                {getTypeIcon(prop.type)}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <div className="font-bold text-gray-900 truncate max-w-[150px]">{prop.title}</div>
+                                                                {renderSmartDetails(prop)}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">KES {Number(prop.pricePerNight || prop.price).toLocaleString()}</td>
                                                 </tr>
                                             ))}
                                             {myProperties.length === 0 && <tr><td className="p-6 text-center text-gray-400">No properties</td></tr>}
@@ -299,7 +369,7 @@ export default function HostPage() {
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200">
                                     <tr>
-                                        <th className="px-6 py-3 w-[40%]">Property</th>
+                                        <th className="px-6 py-3 w-[40%]">Listing Details</th>
                                         <th className="px-6 py-3">Location</th>
                                         <th className="px-6 py-3">Price</th>
                                         <th className="px-6 py-3 text-right">Actions</th>
@@ -310,17 +380,29 @@ export default function HostPage() {
                                         <tr key={prop.id} className="hover:bg-gray-50/80 transition group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden shrink-0 border border-gray-200">
+                                                    <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden shrink-0 border border-gray-200 relative group-hover:scale-105 transition">
                                                         <img src={prop.images?.[0] || prop.imageUrl} className="w-full h-full object-cover"/>
+                                                        {/* Badge on Image */}
+                                                        <div className="absolute top-1 left-1 bg-black/50 backdrop-blur-sm p-1 rounded-md text-white">
+                                                            {getTypeIcon(prop.type)}
+                                                        </div>
                                                     </div>
-                                                    <div className="font-bold text-gray-900 truncate max-w-[200px]">{prop.title}</div>
+                                                    <div>
+                                                        <div className="font-bold text-gray-900 text-lg truncate max-w-[250px]">{prop.title}</div>
+                                                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium uppercase tracking-wide">
+                                                            <span>{prop.category}</span>
+                                                            <span>•</span>
+                                                            <span className={prop.status === 'active' ? 'text-green-600' : 'text-gray-400'}>{prop.status || 'Active'}</span>
+                                                        </div>
+                                                        {/* RENDER SMART DETAILS HERE */}
+                                                        {renderSmartDetails(prop)}
+                                                    </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-600">{prop.city || prop.location}</td>
-                                            <td className="px-6 py-4 font-medium">KES {Number(prop.pricePerNight).toLocaleString()}</td>
+                                            <td className="px-6 py-4 text-gray-600">{prop.location?.city || prop.city}</td>
+                                            <td className="px-6 py-4 font-bold text-lg">KES {Number(prop.pricePerNight || prop.price).toLocaleString()}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    {/* 👇 EDIT BUTTON (Pencil) */}
                                                     <button 
                                                         onClick={() => {
                                                             setEditingProperty(prop);
@@ -330,8 +412,6 @@ export default function HostPage() {
                                                     >
                                                         <Pencil size={18}/>
                                                     </button>
-                                                    
-                                                    {/* DELETE BUTTON */}
                                                     <button onClick={() => handleDeleteProperty(prop.id)} className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition cursor-pointer">
                                                         <Trash2 size={18}/>
                                                     </button>
@@ -339,7 +419,7 @@ export default function HostPage() {
                                             </td>
                                         </tr>
                                     ))}
-                                    {myProperties.length === 0 && <tr><td colSpan="4" className="p-12 text-center text-gray-400">No properties found.</td></tr>}
+                                    {myProperties.length === 0 && <tr><td colSpan="4" className="p-12 text-center text-gray-400">No listings found.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -353,7 +433,7 @@ export default function HostPage() {
                             <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200">
                                 <tr>
                                     <th className="px-6 py-3">Guest</th>
-                                    <th className="px-6 py-3">Property</th>
+                                    <th className="px-6 py-3">Service</th>
                                     <th className="px-6 py-3">Total</th>
                                     <th className="px-6 py-3">Status</th>
                                     <th className="px-6 py-3 text-right">Actions</th>
@@ -431,15 +511,15 @@ export default function HostPage() {
         {/* --- VIEW 2: PROFESSIONAL WIZARD (Handles Create & Edit) --- */}
         {view === 'wizard' && (
             <CreateListingWizard 
-               initialData={editingProperty} // <--- Pass the edit data
+               initialData={editingProperty} 
                onClose={() => {
                    setView('dashboard');
-                   setEditingProperty(null); // Clear data
+                   setEditingProperty(null); 
                }} 
                onSuccess={() => {
                   setView('dashboard');
                   setActiveTab('listings');
-                  setEditingProperty(null); // Clear data
+                  setEditingProperty(null); 
                }}
             />
         )}
