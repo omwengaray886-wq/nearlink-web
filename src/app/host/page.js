@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { 
-  collection, addDoc, serverTimestamp, query, where, 
+  collection, query, where, 
   onSnapshot, doc, updateDoc, deleteDoc, orderBy 
 } from 'firebase/firestore';
 import { 
@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 
 import Navbar from '@/components/Navbar';
+// 👇 Import the new Professional Wizard Component
+import CreateListingWizard from '@/components/host/CreateListingWizard';
 
 // --- MOCK DATA FOR ACADEMY ---
 const HOST_LESSONS = [
@@ -39,14 +41,6 @@ export default function HostPage() {
   const [myBookings, setMyBookings] = useState([]);
   const [stats, setStats] = useState({ revenue: 0, views: 0, bookings: 0, occupancy: 0 });
   const [fetching, setFetching] = useState(true);
-
-  // Wizard State
-  const [step, setStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '', description: '', city: '', category: 'BnB',
-    pricePerNight: '', guests: 2, bedrooms: 1, bathrooms: 1, imageUrl: ''
-  });
 
   // --- 1. PROTECT ROUTE ---
   useEffect(() => {
@@ -118,59 +112,6 @@ export default function HostPage() {
     }
   };
 
-  // --- WIZARD HANDLERS ---
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmitListing = async () => {
-    if (!user) return;
-    setIsSubmitting(true);
-    try {
-      const newListing = {
-        title: formData.title,
-        description: formData.description,
-        city: formData.city,
-        pricePerNight: Number(formData.pricePerNight),
-        guests: Number(formData.guests),
-        bedrooms: Number(formData.bedrooms),
-        bathrooms: Number(formData.bathrooms),
-        hostId: user.uid,
-        host: {
-          name: user.name || "NearLink Host",
-          image: user.image || user.photoURL || "https://github.com/shadcn.png",
-          joined: new Date().getFullYear().toString(),
-          role: "Host",
-          isSuperhost: false
-        },
-        rating: "New",
-        reviewCount: 0,
-        images: formData.imageUrl ? [formData.imageUrl] : ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"],
-        createdAt: serverTimestamp(),
-        views: 0,
-        status: 'active',
-        amenities: ["Wifi", "Kitchen", "Washer"] 
-      };
-
-      await addDoc(collection(db, "properties"), newListing);
-      
-      setView('dashboard');
-      setActiveTab('listings');
-      setStep(1);
-      setFormData({
-        title: '', description: '', city: '', category: 'BnB',
-        pricePerNight: '', guests: 2, bedrooms: 1, bathrooms: 1, imageUrl: ''
-      });
-
-    } catch (error) {
-      console.error("Error creating listing:", error);
-      alert("Failed to create listing.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // --- COMPONENT: CALENDAR GRID ---
   const CalendarView = () => {
     const days = Array.from({ length: 30 }, (_, i) => i + 1);
@@ -217,7 +158,6 @@ export default function HostPage() {
       </div>
 
       {/* --- HOST TOOLBAR (STICKY & HIGH Z-INDEX) --- */}
-      {/* 🚀 FIXED: Added z-[100] to float above any Navbar search pills */}
       <div className="bg-white border-b border-gray-200 sticky top-[72px] z-[100] shadow-sm">
           <div className="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between gap-4">
               <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg overflow-x-auto no-scrollbar">
@@ -471,66 +411,16 @@ export default function HostPage() {
             </div>
         )}
 
-        {/* --- VIEW 2: CREATE WIZARD --- */}
+        {/* --- VIEW 2: PROFESSIONAL WIZARD (REPLACES OLD CODE) --- */}
         {view === 'wizard' && (
-            <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-right-8 py-10">
-                <button onClick={() => setView('dashboard')} className="mb-6 flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-black"><ChevronLeft size={16}/> Cancel & Exit</button>
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-                    <div className="h-1.5 bg-gray-100"><div className="h-full bg-black transition-all duration-500" style={{ width: `${(step/4)*100}%` }}></div></div>
-                    <div className="p-10">
-                        <div className="mb-10">
-                            <span className="text-xs font-bold text-nearlink uppercase tracking-wider bg-nearlink/10 px-2 py-1 rounded-md">Step {step} of 4</span>
-                            <h2 className="text-3xl font-black mt-3 text-gray-900 tracking-tight">Create Listing</h2>
-                        </div>
-
-                        {/* WIZARD STEPS */}
-                        <div className="space-y-6 min-h-[300px]">
-                            {step === 1 && (
-                                <>
-                                    <div className="space-y-2"><label className="text-xs font-bold text-gray-900 uppercase">Title</label><input name="title" value={formData.title} onChange={handleChange} className="w-full p-4 border border-gray-300 rounded-xl" placeholder="e.g. Executive Suite"/></div>
-                                    <div className="space-y-2"><label className="text-xs font-bold text-gray-900 uppercase">City</label><input name="city" value={formData.city} onChange={handleChange} className="w-full p-4 border border-gray-300 rounded-xl" placeholder="e.g. Nairobi"/></div>
-                                    <div className="space-y-2"><label className="text-xs font-bold text-gray-900 uppercase">Description</label><textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-4 border border-gray-300 rounded-xl h-32" placeholder="Description..."/></div>
-                                </>
-                            )}
-                            {step === 2 && (
-                                <div className="grid grid-cols-3 gap-4">
-                                    {['guests', 'bedrooms', 'bathrooms'].map(field => (
-                                        <div key={field} className="bg-gray-50 p-6 rounded-xl text-center border">
-                                            <label className="text-xs font-bold text-gray-500 uppercase block mb-2">{field}</label>
-                                            <input type="number" name={field} value={formData[field]} onChange={handleChange} className="w-full text-center bg-transparent font-black text-4xl outline-none"/>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {step === 3 && (
-                                <div className="space-y-4">
-                                    <input name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="Image URL (https://...)" className="w-full p-4 border border-gray-300 rounded-xl"/>
-                                    {formData.imageUrl && <div className="h-48 rounded-xl overflow-hidden border shadow-sm mt-4"><img src={formData.imageUrl} className="w-full h-full object-cover"/></div>}
-                                </div>
-                            )}
-                            {step === 4 && (
-                                <div className="flex flex-col items-center justify-center h-full py-10">
-                                    <div className="relative w-full max-w-xs">
-                                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-2xl">KES</span>
-                                        <input name="pricePerNight" type="number" value={formData.pricePerNight} onChange={handleChange} className="w-full p-6 pl-20 bg-gray-50 border-2 rounded-2xl text-5xl font-black text-center"/>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex justify-between pt-8 border-t border-gray-100 mt-8">
-                            <button onClick={() => setStep(s => s - 1)} disabled={step === 1} className="px-8 py-3 rounded-xl font-bold text-gray-500 disabled:opacity-50">Back</button>
-                            {step < 4 ? (
-                                <button onClick={() => setStep(s => s + 1)} className="bg-black text-white px-10 py-3 rounded-xl font-bold">Continue</button>
-                            ) : (
-                                <button onClick={handleSubmitListing} disabled={isSubmitting} className="bg-[#005871] text-white px-10 py-3 rounded-xl font-bold flex items-center gap-2">
-                                    {isSubmitting && <Loader2 className="animate-spin" size={18}/>} Publish Listing
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <CreateListingWizard 
+               onClose={() => setView('dashboard')} 
+               onSuccess={() => {
+                  setView('dashboard');
+                  setActiveTab('listings');
+                  // Optional: You can add a toast notification here
+               }}
+            />
         )}
 
       </div>
