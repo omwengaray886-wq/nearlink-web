@@ -7,7 +7,8 @@ import {
   Upload, Check, X, Wifi, Coffee, Tv, Car, Wind, MapPin, 
   Image as ImageIcon, Utensils, Calendar, Map, Bus, Tent, 
   Music, Briefcase, Key, Shield, Info, DollarSign, Clock, 
-  Users, Fuel, Globe, Award, AlertCircle
+  Users, Fuel, Globe, Award, AlertCircle, Dumbbell, Waves, 
+  Mountain, Camera, Compass
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -17,9 +18,9 @@ import ImageUpload from '@/components/ImageUpload';
 // --- 1. LISTING TYPES ---
 const LISTING_TYPES = [
   { id: 'stay', label: 'Stays', icon: Home, desc: 'Homes, hotels, & apartments' },
+  { id: 'experience', label: 'Experiences', icon: Tent, desc: 'Tours, hikes, & adventures' },
   { id: 'transport', label: 'Transport', icon: Car, desc: 'Car rentals & shuttles' },
   { id: 'food', label: 'Food & Drink', icon: Utensils, desc: 'Restaurants & home chefs' },
-  { id: 'experience', label: 'Experiences', icon: Tent, desc: 'Tours, hikes, & adventures' },
   { id: 'event', label: 'Events', icon: Calendar, desc: 'Parties, concerts, & meetups' },
   { id: 'guide', label: 'Travel Guide', icon: Map, desc: 'Local experts & fixers' },
 ];
@@ -27,8 +28,14 @@ const LISTING_TYPES = [
 // --- 2. SUB-CATEGORIES ---
 const SUB_CATEGORIES = {
   stay: [
-    { id: 'house', label: 'Entire House' }, { id: 'apartment', label: 'Apartment' }, 
-    { id: 'hotel', label: 'Boutique Hotel' }, { id: 'villa', label: 'Luxury Villa' }
+    { id: 'apartment', label: 'Apartment' }, { id: 'house', label: 'Entire House' }, 
+    { id: 'villa', label: 'Luxury Villa' }, { id: 'guesthouse', label: 'Guesthouse' },
+    { id: 'hotel', label: 'Boutique Hotel' }, { id: 'cabin', label: 'Cabin / Cottage' }
+  ],
+  experience: [
+    { id: 'hiking', label: 'Hiking / Trekking' }, { id: 'safari', label: 'Safari / Game Drive' }, 
+    { id: 'culture', label: 'Cultural Tour' }, { id: 'workshop', label: 'Class / Workshop' },
+    { id: 'water', label: 'Water Sports' }, { id: 'nightlife', label: 'Nightlife Tour' }
   ],
   transport: [
     { id: 'suv', label: 'SUV / 4x4' }, { id: 'sedan', label: 'Saloon / Sedan' }, 
@@ -38,10 +45,6 @@ const SUB_CATEGORIES = {
   food: [
     { id: 'restaurant', label: 'Restaurant' }, { id: 'cafe', label: 'Cafe / Bistro' }, 
     { id: 'bar', label: 'Bar / Lounge' }, { id: 'chef', label: 'Private Chef' }
-  ],
-  experience: [
-    { id: 'hiking', label: 'Hiking / Trekking' }, { id: 'safari', label: 'Safari Game Drive' }, 
-    { id: 'culture', label: 'Cultural Tour' }, { id: 'workshop', label: 'Class / Workshop' }
   ],
   event: [
     { id: 'concert', label: 'Concert / Show' }, { id: 'party', label: 'Nightlife / Party' }, 
@@ -56,32 +59,57 @@ const SUB_CATEGORIES = {
 // --- 3. AMENITIES MAP (Category Specific) ---
 const AMENITY_MAP = {
     stay: [
-        { id: 'wifi', label: 'Wifi' }, { id: 'pool', label: 'Pool' }, { id: 'ac', label: 'AC' },
-        { id: 'kitchen', label: 'Kitchen' }, { id: 'tv', label: 'TV' }, { id: 'parking', label: 'Parking' }
-    ],
-    transport: [
-        { id: 'ac', label: 'AC' }, { id: 'bluetooth', label: 'Bluetooth Audio' }, 
-        { id: 'leather', label: 'Leather Seats' }, { id: 'tinted', label: 'Tinted Windows' },
-        { id: 'rack', label: 'Roof Rack' }, { id: 'driver', label: 'Chauffeur Included' }
-    ],
-    food: [
-        { id: 'wifi', label: 'Wifi' }, { id: 'outdoor', label: 'Outdoor Seating' }, 
-        { id: 'parking', label: 'Parking' }, { id: 'delivery', label: 'Delivery' },
-        { id: 'vegan', label: 'Vegan Options' }, { id: 'alcohol', label: 'Alcohol Served' }
+        { id: 'wifi', label: 'Fast Wifi', icon: Wifi }, 
+        { id: 'kitchen', label: 'Full Kitchen', icon: Coffee },
+        { id: 'ac', label: 'Air Conditioning', icon: Wind },
+        { id: 'workspace', label: 'Dedicated Workspace', icon: Briefcase },
+        { id: 'pool', label: 'Swimming Pool', icon: Waves },
+        { id: 'gym', label: 'Gym Access', icon: Dumbbell },
+        { id: 'parking', label: 'Free Parking', icon: Car },
+        { id: 'tv', label: 'Smart TV', icon: Tv },
+        { id: 'washer', label: 'Washer/Dryer', icon: Info },
+        { id: 'security', label: '24/7 Security', icon: Shield }
     ],
     experience: [
-        { id: 'transport', label: 'Transport Included' }, { id: 'food', label: 'Food Included' }, 
-        { id: 'gear', label: 'Gear Provided' }, { id: 'family', label: 'Family Friendly' }
+        { id: 'transport', label: 'Transport Included', icon: Car }, 
+        { id: 'food', label: 'Food & Drinks', icon: Utensils }, 
+        { id: 'gear', label: 'Equipment Provided', icon: Briefcase }, 
+        { id: 'photos', label: 'Photography Included', icon: Camera },
+        { id: 'ticket', label: 'Park Fees Included', icon: Key }, 
+        { id: 'guide', label: 'Expert Guide', icon: Users } 
+    ],
+    transport: [
+        { id: 'ac', label: 'AC', icon: Wind }, { id: 'bluetooth', label: 'Bluetooth Audio', icon: Music }, 
+        { id: 'leather', label: 'Leather Seats', icon: Star }, { id: 'tinted', label: 'Tinted Windows', icon: Shield },
+        { id: 'rack', label: 'Roof Rack', icon: Briefcase }, { id: 'driver', label: 'Chauffeur Included', icon: Users }
+    ],
+    food: [
+        { id: 'wifi', label: 'Wifi', icon: Wifi }, { id: 'outdoor', label: 'Outdoor Seating', icon: Info }, 
+        { id: 'parking', label: 'Parking', icon: Car }, { id: 'delivery', label: 'Delivery', icon: Car },
+        { id: 'vegan', label: 'Vegan Options', icon: Check }, { id: 'alcohol', label: 'Alcohol Served', icon: Info }
     ],
     event: [
-        { id: 'vip', label: 'VIP Area' }, { id: 'parking', label: 'Secure Parking' }, 
-        { id: 'food', label: 'Food Available' }, { id: '18plus', label: '18+ Only' }
+        { id: 'vip', label: 'VIP Area', icon: Star }, { id: 'parking', label: 'Secure Parking', icon: Car }, 
+        { id: 'food', label: 'Food Available', icon: Utensils }, { id: '18plus', label: '18+ Only', icon: AlertCircle }
     ],
     guide: [
-        { id: 'licensed', label: 'Licensed' }, { id: 'vehicle', label: 'Has Vehicle' }, 
-        { id: 'firstaid', label: 'First Aid Trained' }
+        { id: 'licensed', label: 'Licensed', icon: Award }, { id: 'vehicle', label: 'Has Vehicle', icon: Car }, 
+        { id: 'firstaid', label: 'First Aid Trained', icon: Shield }
     ]
 };
+
+// --- 4. HOUSE RULES (Specific to Stays) ---
+const HOUSE_RULES = [
+    { id: 'petsAllowed', label: 'Pets Allowed' },
+    { id: 'smokingAllowed', label: 'Smoking Allowed' },
+    { id: 'partiesAllowed', label: 'Events/Parties Allowed' },
+    { id: 'selfCheckIn', label: 'Self Check-in (Keybox/Smartlock)' },
+    { id: 'quietHours', label: 'Quiet Hours (10PM - 8AM)' }
+];
+
+// --- 5. EXPERIENCE SPECIFIC OPTIONS ---
+const ACTIVITY_LEVELS = ['Easy', 'Moderate', 'Strenuous', 'Extreme'];
+const AGE_GROUPS = ['All Ages', 'Kids Friendly', '12+', '18+', 'Seniors'];
 
 export default function CreateListingWizard({ onClose, onSuccess, initialData }) {
   const { user } = useAuth();
@@ -95,25 +123,31 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     title: initialData?.title || '',
     description: initialData?.description || '',
     location: initialData?.location || { street: '', city: '', state: '' },
-    // Expanded Details for ALL types
+    // Expanded Details
     details: initialData?.details || { 
       // Stay
+      buildingName: '',
       guests: 2, bedrooms: 1, beds: 1, bathrooms: 1, size: '',
       checkInTime: '14:00', checkOutTime: '11:00',
+      petsAllowed: false, smokingAllowed: false, partiesAllowed: false, selfCheckIn: false, quietHours: false,
       // Transport
       make: '', model: '', year: '', fuelType: 'Petrol', transmission: 'Automatic', seats: 4, withDriver: false,
       // Food
       cuisine: '', dietary: [], openingTime: '', closingTime: '',
-      // Experience & Guide
-      difficulty: 'Moderate', duration: 2, languages: '', groupSize: 10,
+      // Experience & Guide (ENHANCED)
+      startTime: '08:00', endTime: '17:00', duration: 4, 
+      meetingPoint: '', groupSize: 10, activityLevel: 'Moderate',
+      minAge: 'All Ages', whatToBring: '', itinerary: '',
       // Event
-      date: '', startTime: '', ageLimit: '18+',
+      date: '', ageLimit: '18+',
       // Common
       cleaningFee: '', securityDeposit: ''
     },
     amenities: initialData?.amenities || [],
     price: initialData?.price || '', 
-    imageUrl: initialData?.images?.[0] || ''
+    // Image Logic
+    imageUrl: initialData?.images?.[0] || '', // Main image
+    gallery: initialData?.images || [] // Full gallery array
   });
 
   const updateData = (key, value) => setData(prev => ({ ...prev, [key]: value }));
@@ -136,6 +170,16 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     });
   };
 
+  // --- NEW IMAGE HANDLER FOR GALLERY ---
+  const handleMainImageUpload = (url) => {
+      // Set as main image AND add to gallery if not present
+      setData(prev => ({
+          ...prev,
+          imageUrl: url,
+          gallery: prev.gallery.includes(url) ? prev.gallery : [url, ...prev.gallery]
+      }));
+  };
+
   const handleSubmit = async () => {
     if (!user) return;
     setLoading(true);
@@ -144,7 +188,8 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
       const payload = {
         ...data,
         price: Number(data.price),
-        images: data.imageUrl ? [data.imageUrl] : ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
+        // Use gallery if available, otherwise fallback to single image array
+        images: data.gallery.length > 0 ? data.gallery : [data.imageUrl], 
         ...(initialData ? {} : {
             hostId: user.uid,
             hostName: user.name || "Host",
@@ -173,22 +218,51 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
   // --- 1. STAY FORM ---
   const renderStayDetails = () => (
     <div className="space-y-6">
-       <h3 className="font-bold text-black flex items-center gap-2"><Home size={18}/> Home Details</h3>
+       <h3 className="font-bold text-black flex items-center gap-2"><Home size={18}/> Property Details</h3>
+       
+       <div>
+          <label className="text-xs font-bold text-gray-500 uppercase">Building / Complex Name</label>
+          <input 
+             placeholder="e.g. Sunrise Apartments, Block B" 
+             value={data.details.buildingName} 
+             onChange={e => updateDetail('buildingName', e.target.value)} 
+             className="w-full p-3 border border-gray-300 rounded-xl text-black"
+          />
+       </div>
+
        <div className="grid grid-cols-2 gap-4">
           {['guests', 'bedrooms', 'beds', 'bathrooms'].map(key => (
-             <div key={key} className="border border-gray-200 p-3 rounded-xl">
+             <div key={key} className="border border-gray-200 p-3 rounded-xl bg-gray-50">
                 <span className="text-xs text-gray-500 uppercase font-bold">{key}</span>
                 <div className="flex items-center justify-between mt-2">
-                    <button onClick={() => updateDetail(key, Math.max(0, data.details[key]-1))} className="w-6 h-6 rounded-full bg-gray-100 text-black">-</button>
-                    <span className="font-bold text-black">{data.details[key]}</span>
-                    <button onClick={() => updateDetail(key, data.details[key]+1)} className="w-6 h-6 rounded-full bg-black text-white">+</button>
+                    <button onClick={() => updateDetail(key, Math.max(0, data.details[key]-1))} className="w-8 h-8 rounded-full bg-white border border-gray-200 text-black hover:border-black transition">-</button>
+                    <span className="font-bold text-black text-lg">{data.details[key]}</span>
+                    <button onClick={() => updateDetail(key, data.details[key]+1)} className="w-8 h-8 rounded-full bg-black text-white hover:bg-gray-800 transition">+</button>
                 </div>
              </div>
           ))}
        </div>
+
        <div className="grid grid-cols-2 gap-4">
-          <div><label className="text-xs font-bold text-gray-500 uppercase">Check-in</label><input type="time" value={data.details.checkInTime} onChange={e => updateDetail('checkInTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
-          <div><label className="text-xs font-bold text-gray-500 uppercase">Check-out</label><input type="time" value={data.details.checkOutTime} onChange={e => updateDetail('checkOutTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Check-in After</label><input type="time" value={data.details.checkInTime} onChange={e => updateDetail('checkInTime', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white"/></div>
+          <div><label className="text-xs font-bold text-gray-500 uppercase">Check-out Before</label><input type="time" value={data.details.checkOutTime} onChange={e => updateDetail('checkOutTime', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white"/></div>
+       </div>
+
+       <div>
+          <h4 className="font-bold text-black mb-3 text-sm uppercase flex items-center gap-2"><Key size={14}/> House Rules</h4>
+          <div className="space-y-2">
+            {HOUSE_RULES.map(rule => (
+                <div key={rule.id} 
+                    onClick={() => updateDetail(rule.id, !data.details[rule.id])}
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${data.details[rule.id] ? 'border-black bg-green-50' : 'border-gray-200 hover:border-gray-400'}`}
+                >
+                    <div className={`w-5 h-5 rounded flex items-center justify-center border ${data.details[rule.id] ? 'bg-black border-black text-white' : 'border-gray-300'}`}>
+                        {data.details[rule.id] && <Check size={12}/>}
+                    </div>
+                    <span className="text-sm font-medium text-black">{rule.label}</span>
+                </div>
+            ))}
+          </div>
        </div>
     </div>
   );
@@ -247,14 +321,63 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     </div>
   );
 
-  // --- 5. GUIDE/EXPERIENCE FORM ---
+  // --- 5. GUIDE/EXPERIENCE FORM (EXPANDED FOR 20 IMAGES & DETAILS) ---
   const renderExperienceDetails = () => (
-    <div className="space-y-6">
-       <h3 className="font-bold text-black flex items-center gap-2"><Map size={18}/> Activity Info</h3>
-       <div><label className="text-xs font-bold text-gray-500 uppercase">Languages Spoken</label><input placeholder="e.g. English, Swahili, French" value={data.details.languages} onChange={e => updateDetail('languages', e.target.value)} className="w-full p-3 border rounded-lg text-black"/></div>
-       <div className="grid grid-cols-2 gap-4">
-          <div><label className="text-xs font-bold text-gray-500 uppercase">Duration (Hours)</label><input type="number" value={data.details.duration} onChange={e => updateDetail('duration', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
-          <div><label className="text-xs font-bold text-gray-500 uppercase">Difficulty</label><select value={data.details.difficulty} onChange={e => updateDetail('difficulty', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white"><option>Easy</option><option>Moderate</option><option>Hard</option></select></div>
+    <div className="space-y-8">
+       {/* 1. TIMING & LOGISTICS */}
+       <div className="bg-white p-5 rounded-2xl border border-gray-200">
+          <h3 className="font-bold text-black mb-4 flex items-center gap-2"><Clock size={18}/> Timing & Location</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+             <div><label className="text-xs font-bold text-gray-500 uppercase">Start Time</label><input type="time" value={data.details.startTime} onChange={e => updateDetail('startTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+             <div><label className="text-xs font-bold text-gray-500 uppercase">End Time</label><input type="time" value={data.details.endTime} onChange={e => updateDetail('endTime', e.target.value)} className="w-full p-2 border rounded-lg text-black"/></div>
+          </div>
+          <div>
+             <label className="text-xs font-bold text-gray-500 uppercase">Meeting Point</label>
+             <input placeholder="Exact location where guests should arrive" value={data.details.meetingPoint} onChange={e => updateDetail('meetingPoint', e.target.value)} className="w-full p-3 border rounded-lg text-black"/>
+          </div>
+       </div>
+
+       {/* 2. REQUIREMENTS */}
+       <div className="bg-white p-5 rounded-2xl border border-gray-200">
+          <h3 className="font-bold text-black mb-4 flex items-center gap-2"><AlertCircle size={18}/> Rules & Requirements</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+             <div>
+                <label className="text-xs font-bold text-gray-500 uppercase">Activity Level</label>
+                <select value={data.details.activityLevel} onChange={e => updateDetail('activityLevel', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white">
+                    {ACTIVITY_LEVELS.map(l => <option key={l}>{l}</option>)}
+                </select>
+             </div>
+             <div>
+                <label className="text-xs font-bold text-gray-500 uppercase">Age Suitability</label>
+                <select value={data.details.minAge} onChange={e => updateDetail('minAge', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white">
+                    {AGE_GROUPS.map(a => <option key={a}>{a}</option>)}
+                </select>
+             </div>
+          </div>
+          <div>
+             <label className="text-xs font-bold text-gray-500 uppercase">Max Group Size</label>
+             <input type="number" value={data.details.groupSize} onChange={e => updateDetail('groupSize', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
+          </div>
+       </div>
+
+       {/* 3. ITINERARY & GEAR */}
+       <div className="bg-white p-5 rounded-2xl border border-gray-200">
+          <h3 className="font-bold text-black mb-4 flex items-center gap-2"><Compass size={18}/> The Experience</h3>
+          <div className="space-y-4">
+             <div>
+                <label className="text-xs font-bold text-gray-500 uppercase">What to Bring</label>
+                <input placeholder="e.g. Sunscreen, Hiking Boots, Water" value={data.details.whatToBring} onChange={e => updateDetail('whatToBring', e.target.value)} className="w-full p-3 border rounded-lg text-black"/>
+             </div>
+             <div>
+                <label className="text-xs font-bold text-gray-500 uppercase">Full Itinerary / Description</label>
+                <textarea 
+                    value={data.description} // Using main description for itinerary
+                    onChange={e => updateData('description', e.target.value)}
+                    className="w-full h-40 p-3 border rounded-lg text-black resize-none"
+                    placeholder="Describe the day plan. Hour 1: Meetup... Hour 2: The Hike..."
+                />
+             </div>
+          </div>
        </div>
     </div>
   );
@@ -288,8 +411,7 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <h1 className="text-3xl font-black mb-2 text-black">What are you listing?</h1>
-                <p className="text-gray-500 mb-8">Choose the category that best describes your service.</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
                   {LISTING_TYPES.map(type => (
                     <div 
                       key={type.id}
@@ -348,21 +470,35 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-200">
-                            <h3 className="font-bold text-black mb-4">Description</h3>
-                            <textarea value={data.description} onChange={e => updateData('description', e.target.value)} className="w-full h-32 p-3 border rounded-lg text-black resize-none" placeholder="Describe the experience, the vibe, and what to expect..."/>
-                        </div>
+                        {/* Only show simple description box if NOT an experience (since Exp has itinerary) */}
+                        {data.type !== 'experience' && (
+                            <div className="bg-white p-5 rounded-2xl border border-gray-200">
+                                <h3 className="font-bold text-black mb-4">Description</h3>
+                                <textarea value={data.description} onChange={e => updateData('description', e.target.value)} className="w-full h-32 p-3 border rounded-lg text-black resize-none" placeholder="Describe the vibe..."/>
+                            </div>
+                        )}
                     </div>
                 </div>
               </motion.div>
             )}
 
-            {/* STEP 3: IMAGES */}
+            {/* STEP 3: IMAGES (UPDATED FOR GALLERY) */}
             {step === 3 && (
               <motion.div key="step3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <h1 className="text-3xl font-black mb-2 text-black">Visuals</h1>
-                <p className="text-gray-500 mb-8">Add high-quality photos to attract customers.</p>
-                <ImageUpload initialImage={data.imageUrl} onImageUploaded={(url) => updateData('imageUrl', url)} />
+                <p className="text-gray-500 mb-8">Add high-quality photos. For experiences, upload up to 20 images.</p>
+                <ImageUpload initialImage={data.imageUrl} onImageUploaded={handleMainImageUpload} />
+                
+                {/* GALLERY PREVIEW */}
+                {data.gallery.length > 0 && (
+                    <div className="mt-6 grid grid-cols-4 gap-2">
+                        {data.gallery.map((img, i) => (
+                            <div key={i} className="aspect-square rounded-lg overflow-hidden border border-gray-200">
+                                <img src={img} className="w-full h-full object-cover"/>
+                            </div>
+                        ))}
+                    </div>
+                )}
               </motion.div>
             )}
 
@@ -378,7 +514,7 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
                       onClick={() => toggleAmenity(item.id)}
                       className={`p-4 border rounded-xl flex flex-col gap-3 cursor-pointer transition ${data.amenities.includes(item.id) ? 'border-black bg-gray-900 text-white' : 'border-gray-200 hover:border-gray-400 text-black'}`}
                     >
-                      <Check size={24}/>
+                      <item.icon size={24}/>
                       <span className="font-medium">{item.label}</span>
                     </div>
                   ))}
