@@ -7,9 +7,9 @@ import {
   Upload, Check, X, Wifi, Coffee, Tv, Car, Wind, MapPin, Image as ImageIcon 
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+// 👇 Added 'doc' and 'updateDoc' for editing
+import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
-// 👇 Import the ImageUpload component we just created
 import ImageUpload from '@/components/ImageUpload';
 
 // --- CONFIGURATION ---
@@ -27,21 +27,22 @@ const AMENITIES_LIST = [
   { id: 'ac', label: 'Air Conditioning', icon: Wind },
 ];
 
-export default function CreateListingWizard({ onClose, onSuccess }) {
+// 👇 Now accepts 'initialData' prop
+export default function CreateListingWizard({ onClose, onSuccess, initialData }) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
-  // Consolidated Form State
+  // 👇 Initialize state with existing data if available
   const [data, setData] = useState({
-    category: '',
-    title: '',
-    description: '',
-    location: { city: '', street: '' },
-    details: { guests: 1, bedrooms: 1, bathrooms: 1 },
-    amenities: [],
-    price: '',
-    imageUrl: '' // We store the single main image URL here
+    category: initialData?.category || '',
+    title: initialData?.title || '',
+    description: initialData?.description || '',
+    location: initialData?.location || { city: '', street: '' },
+    details: initialData?.details || { guests: 1, bedrooms: 1, bathrooms: 1 },
+    amenities: initialData?.amenities || [],
+    price: initialData?.pricePerNight || '', 
+    imageUrl: initialData?.images?.[0] || ''
   });
 
   const updateData = (key, value) => {
@@ -65,27 +66,38 @@ export default function CreateListingWizard({ onClose, onSuccess }) {
     setLoading(true);
 
     try {
-      await addDoc(collection(db, "properties"), {
+      // 1. Prepare Payload
+      const payload = {
         ...data,
         pricePerNight: Number(data.price),
-        hostId: user.uid,
-        host: {
-            name: user.name || "Host",
-            image: user.image || "https://github.com/shadcn.png",
-            joined: new Date().getFullYear().toString(),
-        },
-        rating: "New",
-        reviewCount: 0,
-        // Ensure images is an array
         images: data.imageUrl ? [data.imageUrl] : ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688"],
-        status: 'active',
-        createdAt: serverTimestamp(),
-        views: 0
-      });
-      onSuccess(); // Callback to parent to switch view
+        // Only set these on creation, not update
+        ...(initialData ? {} : {
+            hostId: user.uid,
+            host: {
+                name: user.name || "Host",
+                image: user.image || "https://github.com/shadcn.png",
+                joined: new Date().getFullYear().toString(),
+            },
+            rating: "New",
+            reviewCount: 0,
+            status: 'active',
+            createdAt: serverTimestamp(),
+            views: 0
+        }),
+      };
+
+      // 2. Determine Action (Create vs Update)
+      if (initialData) {
+        await updateDoc(doc(db, "properties", initialData.id), payload);
+      } else {
+        await addDoc(collection(db, "properties"), payload);
+      }
+      
+      onSuccess(); 
     } catch (err) {
       console.error(err);
-      alert("Error creating listing");
+      alert("Error saving listing");
     } finally {
       setLoading(false);
     }
@@ -99,7 +111,8 @@ export default function CreateListingWizard({ onClose, onSuccess }) {
         <div className="flex items-center gap-4">
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><X size={20}/></button>
             <div className="h-10 w-[1px] bg-gray-200"></div>
-            <h2 className="font-bold text-lg">Create Listing</h2>
+            {/* 👇 Dynamic Title */}
+            <h2 className="font-bold text-lg">{initialData ? 'Edit Listing' : 'Create Listing'}</h2>
         </div>
         <div className="flex items-center gap-2">
            <span className="text-sm font-medium text-gray-500">Step {step} of 5</span>
@@ -284,7 +297,7 @@ export default function CreateListingWizard({ onClose, onSuccess }) {
                 disabled={loading || !data.price || !data.title}
                 className="bg-[#005871] text-white px-8 py-3 rounded-xl font-bold text-sm hover:scale-105 transition flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
              >
-                {loading ? 'Publishing...' : 'Publish Listing'}
+                {loading ? 'Saving...' : (initialData ? 'Save Changes' : 'Publish Listing')}
              </button>
         )}
       </div>

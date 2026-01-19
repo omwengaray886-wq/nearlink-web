@@ -13,11 +13,10 @@ import {
   Loader2, Calendar as CalendarIcon, Users, Wallet, CheckCircle, 
   XCircle, TrendingUp, MoreHorizontal, MapPin, Star, Settings, Bell, 
   ArrowUpRight, ArrowDownRight, Search, Filter, Download, Clock,
-  PlayCircle, Award, Lightbulb, Trash2, Eye
+  PlayCircle, Award, Lightbulb, Trash2, Eye, Pencil // <--- Added Pencil
 } from 'lucide-react';
 
 import Navbar from '@/components/Navbar';
-// 👇 Import the new Professional Wizard Component
 import CreateListingWizard from '@/components/host/CreateListingWizard';
 
 // --- MOCK DATA FOR ACADEMY ---
@@ -35,6 +34,7 @@ export default function HostPage() {
   // --- STATE ---
   const [view, setView] = useState('dashboard'); // 'dashboard' | 'wizard'
   const [activeTab, setActiveTab] = useState('overview'); 
+  const [editingProperty, setEditingProperty] = useState(null); // <--- NEW STATE FOR EDITING
   
   // Data State
   const [myProperties, setMyProperties] = useState([]);
@@ -90,7 +90,7 @@ export default function HostPage() {
   // --- HANDLERS ---
   const handleTabClick = (tabName) => {
     setActiveTab(tabName);
-    setView('dashboard'); // Ensure we exit wizard mode
+    setView('dashboard'); 
   };
 
   const handleBookingAction = async (bookingId, status) => {
@@ -179,7 +179,8 @@ export default function HostPage() {
                   <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 mr-4">
                       <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> System Operational
                   </div>
-                  <button onClick={() => setView('wizard')} className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition shadow-lg">
+                  {/* UPDATE: Clear editing state when clicking create */}
+                  <button onClick={() => { setEditingProperty(null); setView('wizard'); }} className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-gray-800 transition shadow-lg">
                       <Plus size={16}/> Create Listing
                   </button>
               </div>
@@ -318,7 +319,23 @@ export default function HostPage() {
                                             <td className="px-6 py-4 text-gray-600">{prop.city || prop.location}</td>
                                             <td className="px-6 py-4 font-medium">KES {Number(prop.pricePerNight).toLocaleString()}</td>
                                             <td className="px-6 py-4 text-right">
-                                                <button onClick={() => handleDeleteProperty(prop.id)} className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition cursor-pointer"><Trash2 size={18}/></button>
+                                                <div className="flex justify-end gap-2">
+                                                    {/* 👇 EDIT BUTTON (Pencil) */}
+                                                    <button 
+                                                        onClick={() => {
+                                                            setEditingProperty(prop);
+                                                            setView('wizard');
+                                                        }}
+                                                        className="text-gray-400 hover:text-black p-2 rounded-full hover:bg-gray-100 transition"
+                                                    >
+                                                        <Pencil size={18}/>
+                                                    </button>
+                                                    
+                                                    {/* DELETE BUTTON */}
+                                                    <button onClick={() => handleDeleteProperty(prop.id)} className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition cursor-pointer">
+                                                        <Trash2 size={18}/>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -411,14 +428,18 @@ export default function HostPage() {
             </div>
         )}
 
-        {/* --- VIEW 2: PROFESSIONAL WIZARD (REPLACES OLD CODE) --- */}
+        {/* --- VIEW 2: PROFESSIONAL WIZARD (Handles Create & Edit) --- */}
         {view === 'wizard' && (
             <CreateListingWizard 
-               onClose={() => setView('dashboard')} 
+               initialData={editingProperty} // <--- Pass the edit data
+               onClose={() => {
+                   setView('dashboard');
+                   setEditingProperty(null); // Clear data
+               }} 
                onSuccess={() => {
                   setView('dashboard');
                   setActiveTab('listings');
-                  // Optional: You can add a toast notification here
+                  setEditingProperty(null); // Clear data
                }}
             />
         )}
