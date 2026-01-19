@@ -13,7 +13,6 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase'; 
-import Preloader from '@/components/Preloader'; // ✅ Import the new Preloader
 
 // 1. Context Creation
 const AuthContext = createContext({
@@ -129,23 +128,10 @@ export const AuthContextProvider = ({ children }) => {
 
   // --- LISTENER (THE ENGINE) ---
   useEffect(() => {
-    // 🛡️ SAFETY TIMER: Forces the app to load after 4 seconds 
-    const safetyTimer = setTimeout(() => {
-      setLoading((currentLoading) => {
-        if (currentLoading) {
-           console.warn("⚠️ Firebase Auth timed out. Forcing app to load.");
-           return false; // Force loading to stop
-        }
-        return currentLoading;
-      });
-    }, 4000);
-
     // Listen to Firebase Auth State
     const unsubscribe = onAuthStateChanged(
       auth, 
       async (currentUser) => {
-        clearTimeout(safetyTimer); // Firebase responded!
-
         if (currentUser) {
           try {
             // Fetch full profile (Role, Bio, etc.)
@@ -172,13 +158,11 @@ export const AuthContextProvider = ({ children }) => {
       (error) => {
         console.error("Firebase Network Error:", error);
         setLoading(false);
-        clearTimeout(safetyTimer);
       }
     );
 
     return () => {
       unsubscribe();
-      clearTimeout(safetyTimer);
     };
   }, []);
 
@@ -194,12 +178,11 @@ export const AuthContextProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={values}>
-      {/* Cinematic Preloader */}
-      {loading ? (
-        <Preloader />
-      ) : (
-        children
-      )}
+      {/* ✅ FIXED: We now render 'children' immediately.
+         The loading state is still available via the hook if individual components need it,
+         but the app is no longer blocked by a black screen.
+      */}
+      {children}
     </AuthContext.Provider>
   );
 };
