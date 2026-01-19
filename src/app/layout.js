@@ -8,6 +8,11 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
   title: 'NearLink',
   description: 'Book your next stay or experience.',
+  // ✅ This adds the logo to the browser tab and Google Search
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png', 
+  },
 };
 
 export default function RootLayout({ children }) {
