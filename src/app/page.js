@@ -25,6 +25,7 @@ import EventCard from '@/components/EventCard';
 import FoodCard from '@/components/FoodCard'; 
 import TransportCard from '@/components/TransportCard';
 import GuideCard from '@/components/GuideCard';
+import InteractiveMap from '@/components/InteractiveMap'; // 👈 IMPORTED REAL MAP
 
 // --- CONSTANTS ---
 const POPULAR_LOCATIONS = [
@@ -264,7 +265,8 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.stopPropagation();
-    router.push('/search');
+    // ✅ Pass location query to the search page
+    router.push(`/search?location=${encodeURIComponent(searchLocation)}`);
   };
 
   const getSubMenu = () => {
@@ -326,7 +328,7 @@ export default function Home() {
                 src="https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668" 
                 className="w-full h-full object-cover scale-110 motion-safe:animate-slow-pan" 
                 alt="Hero"
-                loading="eager" // ✅ Ensures background loads instantly
+                loading="eager"
                 priority="true"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-[#002c38]/70 via-black/20 to-gray-50/20"></div>
@@ -496,11 +498,9 @@ export default function Home() {
       {/* MAIN CONTENT GRID */}
       <div className="max-w-[2520px] mx-auto xl:px-20 md:px-10 sm:px-2 px-4 py-8 md:py-12">
          {showMap ? (
-             <div className="h-[500px] md:h-[600px] w-full bg-gray-100 rounded-3xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 animate-in fade-in zoom-in duration-300">
-                 <MapIcon size={64} className="mb-4 text-gray-300" />
-                 <h3 className="text-xl font-bold text-gray-700">Interactive Map</h3>
-                 <p>Google Maps API Integration</p>
-                 <button onClick={() => setShowMap(false)} className="mt-4 bg-[#005871] text-white px-6 py-2 rounded-full text-sm font-bold">Close Map</button>
+             // ✅ REPLACED PLACEHOLDER WITH REAL MAP
+             <div className="h-[600px] w-full bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                 <InteractiveMap onClose={() => setShowMap(false)} properties={displayedItems} />
              </div>
          ) : (
              <>
