@@ -8,7 +8,7 @@ import {
   Smartphone, QrCode, Zap, Clock, ArrowUp, ChevronDown, Check
 } from 'lucide-react';
 
-// Custom TikTok Icon Component (Since it's often missing in standard sets)
+// Custom TikTok Icon Component
 const TikTokIcon = ({ size = 20, className }) => (
   <svg 
     width={size} 
@@ -78,21 +78,22 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // --- 5. SOCIAL MEDIA LINKS (Replace with your actual URLs) ---
+  // --- 5. SOCIAL MEDIA LINKS ---
   const socialLinks = [
     { icon: <Twitter size={18}/>, url: "https://x.com/OmwengaRay45669" },
     { icon: <Instagram size={18}/>, url: "https://www.instagram.com/nearlinkofficial?igsh=aXFtd283ZWxqMTZo" },
     { icon: <Linkedin size={18}/>, url: "https://www.linkedin.com/in/nearlink-nearlink-b87494272?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" },
-    { icon: <TikTokIcon size={18}/>, url: "https://www.tiktok.com/@nearlinkofficial?_r=1&_t=ZS-93A8v4taKmH" }, // ✅ Added TikTok
+    { icon: <TikTokIcon size={18}/>, url: "https://www.tiktok.com/@nearlinkofficial?_r=1&_t=ZS-93A8v4taKmH" },
   ];
 
-  // Site Links
+  // Site Links (Added Journal Here)
   const links = {
     explore: [
       { label: 'Stays', href: '/search' },
       { label: 'Experiences', href: '/experiences' },
       { label: 'Transport', href: '/transport' },
-      { label: 'Food & Dining', href: '/food' }
+      { label: 'Food & Dining', href: '/food' },
+      { label: 'Journal', href: '/journal' } // <--- ADDED JOURNAL LINK
     ],
     company: [
       { label: 'About Us', href: '/about' }, 

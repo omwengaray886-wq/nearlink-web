@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { 
   Search, Menu, User, Globe, Heart, MapPin, 
   MessageSquare, Bell, LogOut, ChevronRight, 
-  Sparkles, LayoutDashboard, 
+  Sparkles, LayoutDashboard, BookOpen, 
   Settings, HelpCircle 
 } from 'lucide-react';
 
@@ -74,10 +74,10 @@ export default function Navbar() {
                     </span>
                 </Link>
 
-                {/* 2. CENTER SECTION: CLEAN (Search removed) */}
-                <div className="hidden md:flex items-center gap-6">
-                    {/* Optional: You can add simple text links here like "Stays" or "Experiences" if you want, 
-                        otherwise leaving it empty makes it look very clean and advanced. */}
+                {/* 2. CENTER SECTION: Desktop Links */}
+                <div className={`hidden md:flex items-center gap-8 font-bold text-sm ${textColor}`}>
+                    <Link href="/journal" className="hover:opacity-70 transition">Journal</Link>
+                    <Link href="/careers" className="hover:opacity-70 transition">Careers</Link>
                 </div>
 
                 {/* 3. RIGHT CONTROLS */}
@@ -157,6 +157,9 @@ export default function Navbar() {
                                             <Link href="/account/wishlists" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition text-sm font-medium text-gray-700">
                                                 <Heart size={16} className="text-gray-400"/> Wishlists
                                             </Link>
+                                            <Link href="/journal" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                                                <BookOpen size={16} className="text-gray-400"/> Journal
+                                            </Link>
                                             <Link href="/host" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition text-sm font-medium text-gray-700">
                                                 <LayoutDashboard size={16} className="text-gray-400"/> Manage Listings
                                             </Link>
@@ -200,6 +203,10 @@ export default function Navbar() {
                                             <Link href="/host" className="flex items-center justify-between group">
                                                 <span className="text-xs font-bold text-gray-500 group-hover:text-[#005871] transition">Host your home</span>
                                                 <ChevronRight size={12} className="text-gray-300 group-hover:text-[#005871] transition"/>
+                                            </Link>
+                                            <Link href="/journal" className="flex items-center justify-between group mt-2">
+                                                <span className="text-xs font-bold text-gray-500 group-hover:text-[#005871] transition">Read our Journal</span>
+                                                <BookOpen size={12} className="text-gray-300 group-hover:text-[#005871] transition"/>
                                             </Link>
                                         </div>
                                     </div>
