@@ -7,14 +7,13 @@ import {
   Search, Menu, User, Globe, Heart, MapPin, 
   MessageSquare, Bell, LogOut, ChevronRight, 
   Sparkles, LayoutDashboard, 
-  Settings, HelpCircle // ✅ FIXED: All icons are imported to prevent crashes
+  Settings, HelpCircle 
 } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSearchTab, setActiveSearchTab] = useState(null);
   const menuRef = useRef(null);
 
   // Close menu logic when clicking outside
@@ -75,60 +74,10 @@ export default function Navbar() {
                     </span>
                 </Link>
 
-                {/* 2. CENTER SECTION: Search Capsule */}
-                
-                {/* MOBILE SEARCH ICON (Visible only on small screens) */}
-                <button className={`
-                    md:hidden p-2 rounded-full transition-all duration-300
-                    ${isScrolled ? 'bg-gray-100 text-[#005871]' : 'bg-white/20 text-white backdrop-blur-md'}
-                `}>
-                    <Search size={20} strokeWidth={2.5} />
-                </button>
-
-                {/* DESKTOP SEARCH CAPSULE (Hidden on mobile) */}
-                <div className={`
-                    hidden md:flex items-center relative transition-all duration-500 ease-out
-                    ${isScrolled ? 'scale-95' : 'scale-100'}
-                `}>
-                    <div className="flex items-center p-1 bg-white border border-gray-200 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_25px_rgba(0,88,113,0.15)] transition-all duration-300 group/search">
-                        
-                        {/* Segment: Where */}
-                        <button 
-                            onMouseEnter={() => setActiveSearchTab('loc')}
-                            onMouseLeave={() => setActiveSearchTab(null)}
-                            className="relative px-4 lg:px-6 py-2.5 text-left rounded-full hover:bg-gray-50 transition-colors group/btn"
-                        >
-                            <label className="block text-[10px] font-extrabold uppercase tracking-widest text-gray-400 group-hover/btn:text-[#005871] transition-colors cursor-pointer">Where</label>
-                            <span className="block text-sm font-bold text-gray-900 truncate max-w-[80px] lg:max-w-[100px]">Anywhere</span>
-                        </button>
-
-                        {/* Segment: When */}
-                        <button 
-                            onMouseEnter={() => setActiveSearchTab('date')}
-                            onMouseLeave={() => setActiveSearchTab(null)}
-                            className="relative px-4 lg:px-6 py-2.5 text-left rounded-full hover:bg-gray-50 transition-colors group/btn"
-                        >
-                            <label className="block text-[10px] font-extrabold uppercase tracking-widest text-gray-400 group-hover/btn:text-[#005871] transition-colors cursor-pointer">When</label>
-                            <span className="block text-sm font-bold text-gray-900 truncate max-w-[80px] lg:max-w-[100px]">Any week</span>
-                        </button>
-
-                        {/* Segment: Who */}
-                        <button 
-                            onMouseEnter={() => setActiveSearchTab('guest')}
-                            onMouseLeave={() => setActiveSearchTab(null)}
-                            className="relative px-4 lg:px-6 py-2.5 text-left rounded-full hover:bg-gray-50 transition-colors group/btn pr-12"
-                        >
-                            <label className="block text-[10px] font-extrabold uppercase tracking-widest text-gray-400 group-hover/btn:text-[#005871] transition-colors cursor-pointer">Who</label>
-                            <span className="block text-sm font-medium text-gray-500 group-hover/btn:text-gray-900 truncate">Add guests</span>
-                        </button>
-
-                        {/* Search Button */}
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                            <button className="w-10 h-10 bg-[#005871] rounded-full flex items-center justify-center text-white shadow-lg shadow-[#005871]/30 hover:scale-110 hover:shadow-[#005871]/50 transition-all duration-300">
-                                <Search size={18} strokeWidth={2.5} />
-                            </button>
-                        </div>
-                    </div>
+                {/* 2. CENTER SECTION: CLEAN (Search removed) */}
+                <div className="hidden md:flex items-center gap-6">
+                    {/* Optional: You can add simple text links here like "Stays" or "Experiences" if you want, 
+                        otherwise leaving it empty makes it look very clean and advanced. */}
                 </div>
 
                 {/* 3. RIGHT CONTROLS */}
