@@ -20,7 +20,7 @@ const LISTING_TYPES = [
   { id: 'stay', label: 'Stays', icon: Home, desc: 'Homes, hotels, & apartments' },
   { id: 'experience', label: 'Experiences', icon: Tent, desc: 'Tours, hikes, & adventures' },
   { id: 'transport', label: 'Transport', icon: Car, desc: 'Car rentals & shuttles' },
-  { id: 'food', label: 'Food & Drink', icon: Utensils, desc: 'Restaurants, cafes & bars' }, // Updated description
+  { id: 'food', label: 'Food & Drink', icon: Utensils, desc: 'Restaurants, cafes & bars' }, 
   { id: 'event', label: 'Events', icon: Calendar, desc: 'Parties, concerts, & meetups' },
   { id: 'guide', label: 'Travel Guide', icon: Map, desc: 'Local experts & fixers' },
 ];
@@ -45,7 +45,6 @@ const SUB_CATEGORIES = {
   food: [
     { id: 'restaurant', label: 'Restaurant' }, { id: 'cafe', label: 'Cafe / Bistro' }, 
     { id: 'bar', label: 'Bar / Lounge' } 
-    // Removed Private Chef
   ],
   event: [
     { id: 'concert', label: 'Concert / Show' }, { id: 'party', label: 'Nightlife / Party' }, 
