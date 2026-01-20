@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, Utensils, Calendar, Map, Bus, Tent, 
   Music, Briefcase, Key, Shield, Info, DollarSign, Clock, 
   Users, Fuel, Globe, Award, AlertCircle, Dumbbell, Waves, 
-  Mountain, Camera, Compass
+  Mountain, Camera, Compass, Star
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -20,7 +20,7 @@ const LISTING_TYPES = [
   { id: 'stay', label: 'Stays', icon: Home, desc: 'Homes, hotels, & apartments' },
   { id: 'experience', label: 'Experiences', icon: Tent, desc: 'Tours, hikes, & adventures' },
   { id: 'transport', label: 'Transport', icon: Car, desc: 'Car rentals & shuttles' },
-  { id: 'food', label: 'Food & Drink', icon: Utensils, desc: 'Restaurants & home chefs' },
+  { id: 'food', label: 'Food & Drink', icon: Utensils, desc: 'Restaurants, cafes & bars' }, // Updated description
   { id: 'event', label: 'Events', icon: Calendar, desc: 'Parties, concerts, & meetups' },
   { id: 'guide', label: 'Travel Guide', icon: Map, desc: 'Local experts & fixers' },
 ];
@@ -44,7 +44,8 @@ const SUB_CATEGORIES = {
   ],
   food: [
     { id: 'restaurant', label: 'Restaurant' }, { id: 'cafe', label: 'Cafe / Bistro' }, 
-    { id: 'bar', label: 'Bar / Lounge' }, { id: 'chef', label: 'Private Chef' }
+    { id: 'bar', label: 'Bar / Lounge' } 
+    // Removed Private Chef
   ],
   event: [
     { id: 'concert', label: 'Concert / Show' }, { id: 'party', label: 'Nightlife / Party' }, 
@@ -223,10 +224,10 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
        <div>
           <label className="text-xs font-bold text-gray-500 uppercase">Building / Complex Name</label>
           <input 
-             placeholder="e.g. Sunrise Apartments, Block B" 
-             value={data.details.buildingName} 
-             onChange={e => updateDetail('buildingName', e.target.value)} 
-             className="w-full p-3 border border-gray-300 rounded-xl text-black"
+              placeholder="e.g. Sunrise Apartments, Block B" 
+              value={data.details.buildingName} 
+              onChange={e => updateDetail('buildingName', e.target.value)} 
+              className="w-full p-3 border border-gray-300 rounded-xl text-black"
           />
        </div>
 
@@ -344,13 +345,13 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
              <div>
                 <label className="text-xs font-bold text-gray-500 uppercase">Activity Level</label>
                 <select value={data.details.activityLevel} onChange={e => updateDetail('activityLevel', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white">
-                    {ACTIVITY_LEVELS.map(l => <option key={l}>{l}</option>)}
+                   {ACTIVITY_LEVELS.map(l => <option key={l}>{l}</option>)}
                 </select>
              </div>
              <div>
                 <label className="text-xs font-bold text-gray-500 uppercase">Age Suitability</label>
                 <select value={data.details.minAge} onChange={e => updateDetail('minAge', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white">
-                    {AGE_GROUPS.map(a => <option key={a}>{a}</option>)}
+                   {AGE_GROUPS.map(a => <option key={a}>{a}</option>)}
                 </select>
              </div>
           </div>
@@ -371,10 +372,10 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
              <div>
                 <label className="text-xs font-bold text-gray-500 uppercase">Full Itinerary / Description</label>
                 <textarea 
-                    value={data.description} // Using main description for itinerary
-                    onChange={e => updateData('description', e.target.value)}
-                    className="w-full h-40 p-3 border rounded-lg text-black resize-none"
-                    placeholder="Describe the day plan. Hour 1: Meetup... Hour 2: The Hike..."
+                   value={data.description} // Using main description for itinerary
+                   onChange={e => updateData('description', e.target.value)}
+                   className="w-full h-40 p-3 border rounded-lg text-black resize-none"
+                   placeholder="Describe the day plan. Hour 1: Meetup... Hour 2: The Hike..."
                 />
              </div>
           </div>
@@ -527,20 +528,20 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
                <motion.div key="step5" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                  <h1 className="text-3xl font-black mb-8 text-black">Final Details</h1>
                  <div className="max-w-lg mx-auto space-y-6">
-                    <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-2 uppercase">Listing Title</label>
-                        <input value={data.title} onChange={(e) => updateData('title', e.target.value)} className="w-full text-2xl font-bold p-4 border border-gray-300 rounded-xl text-black" placeholder="e.g. Modern Loft in CBD" />
-                    </div>
-                    <div>
-                         <label className="block text-sm font-bold text-gray-500 mb-2 uppercase">Price (KES)</label>
-                         <div className="relative">
-                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">KES</span>
-                            <input type="number" value={data.price} onChange={(e) => updateData('price', e.target.value)} className="w-full text-4xl font-black p-4 pl-20 border border-gray-300 rounded-xl text-black outline-none focus:ring-2 ring-black/10" placeholder="0" />
-                         </div>
-                         <p className="text-sm text-gray-500 mt-2 text-center">
-                           {data.type === 'stay' ? 'per night' : data.type === 'transport' ? 'per day' : 'per person'}
-                         </p>
-                    </div>
+                   <div>
+                       <label className="block text-sm font-bold text-gray-500 mb-2 uppercase">Listing Title</label>
+                       <input value={data.title} onChange={(e) => updateData('title', e.target.value)} className="w-full text-2xl font-bold p-4 border border-gray-300 rounded-xl text-black" placeholder="e.g. Modern Loft in CBD" />
+                   </div>
+                   <div>
+                        <label className="block text-sm font-bold text-gray-500 mb-2 uppercase">Price (KES)</label>
+                        <div className="relative">
+                           <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">KES</span>
+                           <input type="number" value={data.price} onChange={(e) => updateData('price', e.target.value)} className="w-full text-4xl font-black p-4 pl-20 border border-gray-300 rounded-xl text-black outline-none focus:ring-2 ring-black/10" placeholder="0" />
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2 text-center">
+                          {data.type === 'stay' ? 'per night' : data.type === 'transport' ? 'per day' : 'per person'}
+                        </p>
+                   </div>
                  </div>
                </motion.div>
             )}
