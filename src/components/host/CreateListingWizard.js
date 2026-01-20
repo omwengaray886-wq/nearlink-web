@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, Building, Hotel, ChevronRight, ChevronLeft, 
   Upload, Check, X, Wifi, Coffee, Tv, Car, Wind, MapPin, 
-  Image as ImageIcon, Utensils, Calendar, Map, Bus, Tent, 
+  Image as ImageIcon, Utensils, Calendar, Map as MapIcon, Bus, Tent, 
   Music, Briefcase, Key, Shield, Info, DollarSign, Clock, 
   Users, Fuel, Globe, Award, AlertCircle, Dumbbell, Waves, 
   Mountain, Camera, Compass, Star
@@ -14,6 +14,11 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 import ImageUpload from '@/components/ImageUpload';
+// --- NEW IMPORTS FOR GOOGLE PLACES ---
+import { useLoadScript, Autocomplete } from '@react-google-maps/api';
+
+// Define libraries outside component to prevent infinite reloads
+const libraries = ['places'];
 
 // --- 1. LISTING TYPES ---
 const LISTING_TYPES = [
@@ -22,7 +27,7 @@ const LISTING_TYPES = [
   { id: 'transport', label: 'Transport', icon: Car, desc: 'Car rentals & shuttles' },
   { id: 'food', label: 'Food & Drink', icon: Utensils, desc: 'Restaurants, cafes & bars' }, 
   { id: 'event', label: 'Events', icon: Calendar, desc: 'Parties, concerts, & meetups' },
-  { id: 'guide', label: 'Travel Guide', icon: Map, desc: 'Local experts & fixers' },
+  { id: 'guide', label: 'Travel Guide', icon: MapIcon, desc: 'Local experts & fixers' },
 ];
 
 // --- 2. SUB-CATEGORIES ---
@@ -56,7 +61,7 @@ const SUB_CATEGORIES = {
   ]
 };
 
-// --- 3. AMENITIES MAP (Category Specific) ---
+// --- 3. AMENITIES MAP ---
 const AMENITY_MAP = {
     stay: [
         { id: 'wifi', label: 'Fast Wifi', icon: Wifi }, 
@@ -98,7 +103,6 @@ const AMENITY_MAP = {
     ]
 };
 
-// --- 4. HOUSE RULES (Specific to Stays) ---
 const HOUSE_RULES = [
     { id: 'petsAllowed', label: 'Pets Allowed' },
     { id: 'smokingAllowed', label: 'Smoking Allowed' },
@@ -107,7 +111,6 @@ const HOUSE_RULES = [
     { id: 'quietHours', label: 'Quiet Hours (10PM - 8AM)' }
 ];
 
-// --- 5. EXPERIENCE SPECIFIC OPTIONS ---
 const ACTIVITY_LEVELS = ['Easy', 'Moderate', 'Strenuous', 'Extreme'];
 const AGE_GROUPS = ['All Ages', 'Kids Friendly', '12+', '18+', 'Seniors'];
 
@@ -116,63 +119,90 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
-  // --- ROBUST STATE ---
+  // --- LOAD GOOGLE SCRIPT ---
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries,
+  });
+
+  // --- AUTOCOMPLETE REF ---
+  const autocompleteRef = useRef(null);
+
+  // --- STATE ---
   const [data, setData] = useState({
     type: initialData?.type || '', 
     category: initialData?.category || '',
     title: initialData?.title || '',
     description: initialData?.description || '',
-    location: initialData?.location || { street: '', city: '', state: '' },
-    // Expanded Details
+    // Updated Location Structure with Lat/Lng
+    location: initialData?.location || { 
+        street: '', city: '', state: '', lat: null, lng: null 
+    },
     details: initialData?.details || { 
-      // Stay
-      buildingName: '',
-      guests: 2, bedrooms: 1, beds: 1, bathrooms: 1, size: '',
+      buildingName: '', guests: 2, bedrooms: 1, beds: 1, bathrooms: 1,
       checkInTime: '14:00', checkOutTime: '11:00',
       petsAllowed: false, smokingAllowed: false, partiesAllowed: false, selfCheckIn: false, quietHours: false,
-      // Transport
       make: '', model: '', year: '', fuelType: 'Petrol', transmission: 'Automatic', seats: 4, withDriver: false,
-      // Food
       cuisine: '', dietary: [], openingTime: '', closingTime: '',
-      // Experience & Guide (ENHANCED)
       startTime: '08:00', endTime: '17:00', duration: 4, 
       meetingPoint: '', groupSize: 10, activityLevel: 'Moderate',
       minAge: 'All Ages', whatToBring: '', itinerary: '',
-      // Event
       date: '', ageLimit: '18+',
-      // Common
       cleaningFee: '', securityDeposit: ''
     },
     amenities: initialData?.amenities || [],
     price: initialData?.price || '', 
-    // Image Logic
-    imageUrl: initialData?.images?.[0] || '', // Main image
-    gallery: initialData?.images || [] // Full gallery array
+    imageUrl: initialData?.images?.[0] || '', 
+    gallery: initialData?.images || [] 
   });
 
+  // --- GOOGLE PLACES HANDLER ---
+  const handlePlaceSelect = () => {
+    if (autocompleteRef.current) {
+        const place = autocompleteRef.current.getPlace();
+        
+        // 1. Get Lat/Lng
+        const lat = place.geometry?.location?.lat();
+        const lng = place.geometry?.location?.lng();
+
+        // 2. Extract City/State from Address Components
+        let city = '';
+        let state = '';
+        
+        if (place.address_components) {
+            place.address_components.forEach(comp => {
+                if (comp.types.includes("locality")) city = comp.long_name;
+                if (comp.types.includes("administrative_area_level_1")) state = comp.long_name;
+                if (!city && comp.types.includes("administrative_area_level_2")) city = comp.long_name;
+            });
+        }
+
+        // 3. Update State
+        setData(prev => ({
+            ...prev,
+            location: {
+                street: place.formatted_address || '', // Full address
+                city: city || prev.location.city,
+                state: state || prev.location.state,
+                lat: lat || null,
+                lng: lng || null
+            }
+        }));
+    }
+  };
+
   const updateData = (key, value) => setData(prev => ({ ...prev, [key]: value }));
+  const updateDetail = (key, value) => setData(prev => ({ ...prev, details: { ...prev.details, [key]: value } }));
+  const updateLocation = (key, value) => setData(prev => ({ ...prev, location: { ...prev.location, [key]: value } }));
   
-  const updateDetail = (key, value) => {
-    setData(prev => ({ ...prev, details: { ...prev.details, [key]: value } }));
-  };
-
-  const updateLocation = (key, value) => {
-    setData(prev => ({ ...prev, location: { ...prev.location, [key]: value } }));
-  };
-
   const toggleAmenity = (id) => {
     setData(prev => {
       const exists = prev.amenities.includes(id);
-      return {
-        ...prev,
-        amenities: exists ? prev.amenities.filter(a => a !== id) : [...prev.amenities, id]
-      };
+      return { ...prev, amenities: exists ? prev.amenities.filter(a => a !== id) : [...prev.amenities, id] };
     });
   };
 
-  // --- NEW IMAGE HANDLER FOR GALLERY ---
   const handleMainImageUpload = (url) => {
-      // Set as main image AND add to gallery if not present
       setData(prev => ({
           ...prev,
           imageUrl: url,
@@ -188,8 +218,13 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
       const payload = {
         ...data,
         price: Number(data.price),
-        // Use gallery if available, otherwise fallback to single image array
-        images: data.gallery.length > 0 ? data.gallery : [data.imageUrl], 
+        images: data.gallery.length > 0 ? data.gallery : [data.imageUrl],
+        
+        // SAVE ROOT LOCATION FIELDS FOR MAP COMPATIBILITY
+        latitude: data.location.lat,
+        longitude: data.location.lng,
+        city: data.location.city,
+         
         ...(initialData ? {} : {
             hostId: user.uid,
             hostName: user.name || "Host",
@@ -215,21 +250,14 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     }
   };
 
-  // --- 1. STAY FORM ---
+  // --- RENDER HELPERS ---
   const renderStayDetails = () => (
     <div className="space-y-6">
        <h3 className="font-bold text-black flex items-center gap-2"><Home size={18}/> Property Details</h3>
-       
        <div>
           <label className="text-xs font-bold text-gray-500 uppercase">Building / Complex Name</label>
-          <input 
-              placeholder="e.g. Sunrise Apartments, Block B" 
-              value={data.details.buildingName} 
-              onChange={e => updateDetail('buildingName', e.target.value)} 
-              className="w-full p-3 border border-gray-300 rounded-xl text-black"
-          />
+          <input placeholder="e.g. Sunrise Apartments, Block B" value={data.details.buildingName} onChange={e => updateDetail('buildingName', e.target.value)} className="w-full p-3 border border-gray-300 rounded-xl text-black"/>
        </div>
-
        <div className="grid grid-cols-2 gap-4">
           {['guests', 'bedrooms', 'beds', 'bathrooms'].map(key => (
              <div key={key} className="border border-gray-200 p-3 rounded-xl bg-gray-50">
@@ -242,12 +270,10 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
              </div>
           ))}
        </div>
-
        <div className="grid grid-cols-2 gap-4">
           <div><label className="text-xs font-bold text-gray-500 uppercase">Check-in After</label><input type="time" value={data.details.checkInTime} onChange={e => updateDetail('checkInTime', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white"/></div>
           <div><label className="text-xs font-bold text-gray-500 uppercase">Check-out Before</label><input type="time" value={data.details.checkOutTime} onChange={e => updateDetail('checkOutTime', e.target.value)} className="w-full p-2 border rounded-lg text-black bg-white"/></div>
        </div>
-
        <div>
           <h4 className="font-bold text-black mb-3 text-sm uppercase flex items-center gap-2"><Key size={14}/> House Rules</h4>
           <div className="space-y-2">
@@ -267,7 +293,6 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     </div>
   );
 
-  // --- 2. TRANSPORT FORM ---
   const renderTransportDetails = () => (
     <div className="space-y-6">
        <h3 className="font-bold text-black flex items-center gap-2"><Car size={18}/> Vehicle Specs</h3>
@@ -297,7 +322,6 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     </div>
   );
 
-  // --- 3. FOOD FORM ---
   const renderFoodDetails = () => (
     <div className="space-y-6">
        <h3 className="font-bold text-black flex items-center gap-2"><Utensils size={18}/> Dining Details</h3>
@@ -309,7 +333,6 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     </div>
   );
 
-  // --- 4. EVENT FORM ---
   const renderEventDetails = () => (
     <div className="space-y-6">
        <h3 className="font-bold text-black flex items-center gap-2"><Calendar size={18}/> Event Logistics</h3>
@@ -321,10 +344,8 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
     </div>
   );
 
-  // --- 5. GUIDE/EXPERIENCE FORM (EXPANDED FOR 20 IMAGES & DETAILS) ---
   const renderExperienceDetails = () => (
     <div className="space-y-8">
-       {/* 1. TIMING & LOGISTICS */}
        <div className="bg-white p-5 rounded-2xl border border-gray-200">
           <h3 className="font-bold text-black mb-4 flex items-center gap-2"><Clock size={18}/> Timing & Location</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -336,8 +357,6 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
              <input placeholder="Exact location where guests should arrive" value={data.details.meetingPoint} onChange={e => updateDetail('meetingPoint', e.target.value)} className="w-full p-3 border rounded-lg text-black"/>
           </div>
        </div>
-
-       {/* 2. REQUIREMENTS */}
        <div className="bg-white p-5 rounded-2xl border border-gray-200">
           <h3 className="font-bold text-black mb-4 flex items-center gap-2"><AlertCircle size={18}/> Rules & Requirements</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -359,8 +378,6 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
              <input type="number" value={data.details.groupSize} onChange={e => updateDetail('groupSize', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
           </div>
        </div>
-
-       {/* 3. ITINERARY & GEAR */}
        <div className="bg-white p-5 rounded-2xl border border-gray-200">
           <h3 className="font-bold text-black mb-4 flex items-center gap-2"><Compass size={18}/> The Experience</h3>
           <div className="space-y-4">
@@ -371,7 +388,7 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
              <div>
                 <label className="text-xs font-bold text-gray-500 uppercase">Full Itinerary / Description</label>
                 <textarea 
-                   value={data.description} // Using main description for itinerary
+                   value={data.description} 
                    onChange={e => updateData('description', e.target.value)}
                    className="w-full h-40 p-3 border rounded-lg text-black resize-none"
                    placeholder="Describe the day plan. Hour 1: Meetup... Hour 2: The Hike..."
@@ -413,11 +430,7 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
                 <h1 className="text-3xl font-black mb-2 text-black">What are you listing?</h1>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
                   {LISTING_TYPES.map(type => (
-                    <div 
-                      key={type.id}
-                      onClick={() => updateData('type', type.id)}
-                      className={`p-6 border-2 rounded-2xl cursor-pointer transition-all hover:border-black ${data.type === type.id ? 'border-black bg-gray-50' : 'border-gray-200'}`}
-                    >
+                    <div key={type.id} onClick={() => updateData('type', type.id)} className={`p-6 border-2 rounded-2xl cursor-pointer transition-all hover:border-black ${data.type === type.id ? 'border-black bg-gray-50' : 'border-gray-200'}`}>
                       <type.icon size={32} className="mb-4 text-gray-800"/>
                       <h3 className="font-bold text-lg text-black">{type.label}</h3>
                       <p className="text-xs text-gray-500 mt-2">{type.desc}</p>
@@ -427,7 +440,7 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
               </motion.div>
             )}
 
-            {/* STEP 2: DETAILS */}
+            {/* STEP 2: DETAILS (WITH SMART MAPS) */}
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <h1 className="text-3xl font-black mb-6 text-black">Property Details</h1>
@@ -437,11 +450,7 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
                    <label className="text-sm font-bold uppercase text-gray-500 mb-3 block">Sub-Category</label>
                    <div className="flex flex-wrap gap-3">
                       {(SUB_CATEGORIES[data.type] || SUB_CATEGORIES['stay']).map(sub => (
-                        <button
-                          key={sub.id}
-                          onClick={() => updateData('category', sub.id)}
-                          className={`px-4 py-2 rounded-full border font-medium text-sm transition ${data.category === sub.id ? 'bg-black text-white border-black' : 'bg-white text-black border-gray-300 hover:border-black'}`}
-                        >
+                        <button key={sub.id} onClick={() => updateData('category', sub.id)} className={`px-4 py-2 rounded-full border font-medium text-sm transition ${data.category === sub.id ? 'bg-black text-white border-black' : 'bg-white text-black border-gray-300 hover:border-black'}`}>
                           {sub.label}
                         </button>
                       ))}
@@ -463,57 +472,72 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
                         <div className="bg-white p-5 rounded-2xl border border-gray-200">
                             <h3 className="font-bold text-black mb-4 flex items-center gap-2"><MapPin size={18}/> Location</h3>
                             <div className="space-y-3">
-                                <input placeholder="Street Address" value={data.location.street} onChange={e => updateLocation('street', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
+                                {/* GOOGLE AUTOCOMPLETE INPUT */}
+                                <div className="relative">
+                                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Search Address</label>
+                                    {isLoaded ? (
+                                        <Autocomplete
+                                            onLoad={ref => (autocompleteRef.current = ref)}
+                                            onPlaceChanged={handlePlaceSelect}
+                                        >
+                                            <input 
+                                                placeholder="Start typing location (e.g. Westlands)..." 
+                                                className="w-full p-3 border rounded-lg text-black bg-gray-50 focus:bg-white transition"
+                                                defaultValue={data.location.street}
+                                            />
+                                        </Autocomplete>
+                                    ) : (
+                                        <div className="p-3 bg-gray-100 rounded-lg text-gray-400 text-sm">Loading Maps...</div>
+                                    )}
+                                </div>
+
+                                <input placeholder="Street / Building" value={data.location.street} onChange={e => updateLocation('street', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
+                                
                                 <div className="grid grid-cols-2 gap-3">
                                     <input placeholder="City" value={data.location.city} onChange={e => updateLocation('city', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
                                     <input placeholder="State/County" value={data.location.state} onChange={e => updateLocation('state', e.target.value)} className="w-full p-2 border rounded-lg text-black"/>
                                 </div>
+                                
+                                {/* Coordinates Display (For Verification) */}
+                                <div className="text-[10px] text-gray-400 flex gap-2">
+                                    <span>Lat: {data.location.lat ? data.location.lat.toFixed(5) : 'N/A'}</span>
+                                    <span>Lng: {data.location.lng ? data.location.lng.toFixed(5) : 'N/A'}</span>
+                                </div>
                             </div>
                         </div>
+                        
                         {/* Only show simple description box if NOT an experience (since Exp has itinerary) */}
                         {data.type !== 'experience' && (
-                            <div className="bg-white p-5 rounded-2xl border border-gray-200">
+                           <div className="bg-white p-5 rounded-2xl border border-gray-200">
                                 <h3 className="font-bold text-black mb-4">Description</h3>
                                 <textarea value={data.description} onChange={e => updateData('description', e.target.value)} className="w-full h-32 p-3 border rounded-lg text-black resize-none" placeholder="Describe the vibe..."/>
-                            </div>
+                           </div>
                         )}
                     </div>
                 </div>
               </motion.div>
             )}
 
-            {/* STEP 3: IMAGES (UPDATED FOR GALLERY) */}
+            {/* STEP 3, 4, 5 (Kept Standard) */}
             {step === 3 && (
               <motion.div key="step3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <h1 className="text-3xl font-black mb-2 text-black">Visuals</h1>
-                <p className="text-gray-500 mb-8">Add high-quality photos. For experiences, upload up to 20 images.</p>
+                <p className="text-gray-500 mb-8">Add high-quality photos.</p>
                 <ImageUpload initialImage={data.imageUrl} onImageUploaded={handleMainImageUpload} />
-                
-                {/* GALLERY PREVIEW */}
                 {data.gallery.length > 0 && (
                     <div className="mt-6 grid grid-cols-4 gap-2">
-                        {data.gallery.map((img, i) => (
-                            <div key={i} className="aspect-square rounded-lg overflow-hidden border border-gray-200">
-                                <img src={img} className="w-full h-full object-cover"/>
-                            </div>
-                        ))}
+                        {data.gallery.map((img, i) => (<div key={i} className="aspect-square rounded-lg overflow-hidden border border-gray-200"><img src={img} className="w-full h-full object-cover"/></div>))}
                     </div>
                 )}
               </motion.div>
             )}
 
-            {/* STEP 4: AMENITIES */}
             {step === 4 && (
               <motion.div key="step4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <h1 className="text-3xl font-black mb-2 text-black">Features</h1>
-                <p className="text-gray-500 mb-8">What is included?</p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {(AMENITY_MAP[data.type] || AMENITY_MAP['stay']).map(item => (
-                    <div 
-                      key={item.id}
-                      onClick={() => toggleAmenity(item.id)}
-                      className={`p-4 border rounded-xl flex flex-col gap-3 cursor-pointer transition ${data.amenities.includes(item.id) ? 'border-black bg-gray-900 text-white' : 'border-gray-200 hover:border-gray-400 text-black'}`}
-                    >
+                    <div key={item.id} onClick={() => toggleAmenity(item.id)} className={`p-4 border rounded-xl flex flex-col gap-3 cursor-pointer transition ${data.amenities.includes(item.id) ? 'border-black bg-gray-900 text-white' : 'border-gray-200 hover:border-gray-400 text-black'}`}>
                       <item.icon size={24}/>
                       <span className="font-medium">{item.label}</span>
                     </div>
@@ -522,7 +546,6 @@ export default function CreateListingWizard({ onClose, onSuccess, initialData })
               </motion.div>
             )}
 
-            {/* STEP 5: FINAL */}
             {step === 5 && (
                <motion.div key="step5" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                  <h1 className="text-3xl font-black mb-8 text-black">Final Details</h1>
