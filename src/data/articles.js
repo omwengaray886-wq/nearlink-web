@@ -43,7 +43,7 @@ export const ARTICLES = [
     author: AUTHORS.sarah,
     date: "Oct 12, 2025",
     readTime: "8 min",
-    size: "large", // Layout control
+    size: "large", 
     
     // SEO Data
     seo: {
@@ -59,10 +59,10 @@ export const ARTICLES = [
       shares: 45
     },
 
-    // Properties mentioned in this article (For sidebar booking widget)
+    // Properties mentioned in this article
     relatedListings: ["prop_101", "prop_105"],
 
-    // BLOCK-BASED CONTENT (For rich rendering)
+    // BLOCK-BASED CONTENT
     content: [
       {
         type: "paragraph",
@@ -71,7 +71,8 @@ export const ARTICLES = [
       {
         type: "heading",
         level: 2,
-        text: "1. The Sacred Kaya Kinondo Forest"
+        text: "The Sacred Kaya Kinondo Forest",
+        id: "kaya-forest"
       },
       {
         type: "paragraph",
@@ -81,6 +82,12 @@ export const ARTICLES = [
         type: "quote",
         text: "You don't just walk through the Kaya. You ask permission from the ancestors first.",
         author: "Mzee Juma, Local Guide"
+      },
+      {
+        type: "map_location", 
+        lat: -4.3964,
+        lng: 39.5534,
+        name: "Kaya Kinondo Sacred Forest"
       },
       {
         type: "image_grid",
@@ -93,14 +100,20 @@ export const ARTICLES = [
       {
         type: "heading",
         level: 2,
-        text: "2. Dining in a Cave"
+        text: "Dining in a Cave",
+        id: "cave-dining"
+      },
+      {
+        type: "pros_cons",
+        pros: ["Unique atmosphere (180,000 year old cave)", "Starlit sky view", "Excellent seafood"],
+        cons: ["Requires advance booking", "Pricey (High-end)"]
       },
       {
         type: "paragraph",
         text: "Ali Barbour's Cave Restaurant is estimated to be between 120,000 and 180,000 years old. The natural hole in the ceiling opens up to the starlit sky."
       },
       {
-        type: "booking_card", // Custom component to book this exact experience
+        type: "booking_card", 
         title: "Diani Cave Dinner Experience",
         price: "KES 5,500",
         rating: 4.9,
@@ -130,7 +143,7 @@ export const ARTICLES = [
     stats: {
       views: 850,
       likes: 45,
-      shares: 120 // Highly shared by hosts
+      shares: 120 
     },
 
     content: [
@@ -185,7 +198,7 @@ export const ARTICLES = [
       },
       {
         type: "video_embed",
-        src: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
+        src: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder video
         caption: "Watch the launch trailer"
       },
       {
@@ -202,7 +215,7 @@ export const ARTICLES = [
     title: "Nairobi's Evolving Coffee Scene",
     excerpt: "A tour through the best new cafes in Kilimani and Westlands.",
     image: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=800&q=80",
-    author: { ...AUTHORS.sarah, role: "Coffee Enthusiast" }, // Override role for this specific article
+    author: { ...AUTHORS.sarah, role: "Coffee Enthusiast" },
     date: "Oct 08, 2025",
     readTime: "4 min",
     size: "normal",
@@ -261,7 +274,7 @@ export const ARTICLES = [
     author: { name: "Fatuma A.", role: "Local Guide", avatar: "https://i.pravatar.cc/150?u=fatuma" },
     date: "Sep 25, 2025",
     readTime: "5 min",
-    size: "tall", // Vertical image works best here
+    size: "tall", 
     stats: { views: 1800, likes: 150, shares: 90 },
     content: [{ type: "paragraph", text: "Walking through Old Town Mombasa is a sensory explosion." }]
   },
