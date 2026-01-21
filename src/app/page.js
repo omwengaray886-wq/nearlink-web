@@ -51,17 +51,32 @@ const HERO_TEXTS = {
   'Travel Guide': "Travel smarter, go further."
 };
 
-// ✅ OPTIMIZED HERO IMAGES (Faster Loading)
-// Changed width (w) to 1920 and quality (q) to 75 for speed
+// ✅ SUPER-OPTIMIZED HERO IMAGES (WebP + 1600px + Q65)
+// These are tuned to load instantly on 3G/4G while keeping context.
 const HERO_IMAGES = {
-  'Stays': "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=75", 
-  'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1920&q=75", 
-  'Transport': "https://images.unsplash.com/photo-1534056262972-e568eb2a297e?auto=format&fit=crop&w=1920&q=75", 
-  'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1920&q=75", 
-  'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=75", 
-  'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1920&q=75", 
-  'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=1920&q=75", 
-  'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1920&q=75" 
+  // Stays: Interior of a Modern BnB / Living Room (Context: Home/Comfort)
+  'Stays': "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  
+  // Experiences: Action Shot - Safari Game Drive with Wildlife (Context: Adventure)
+  'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  
+  // Transport: Safari Land Cruiser on the road (Context: Travel/Vehicle)
+  'Transport': "https://images.unsplash.com/photo-1534056262972-e568eb2a297e?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  
+  // Food: Dining Atmosphere
+  'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  
+  // Events: Festival Crowd
+  'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  
+  // Destinations: Iconic Landscape
+  'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  
+  // Things To Do: Hiking/Active
+  'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  
+  // Travel Guide: Map/Planning
+  'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1600&q=65&fm=webp" 
 };
 
 const STAY_TYPES = ["All Stays", "BnBs", "Guest houses", "Lodges", "Eco stays", "Village homestays", "Luxury villas"];
@@ -336,7 +351,7 @@ export default function Home() {
       {/* HERO SECTION */}
       <div className="relative h-[85vh] w-full flex flex-col items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-              {/* ✅ DYNAMIC BACKGROUND IMAGE (Optimized with fetchPriority) */}
+              {/* ✅ DYNAMIC BACKGROUND IMAGE (Aggressively Optimized) */}
               <img 
                 key={activeCategory} 
                 src={HERO_IMAGES[activeCategory] || HERO_IMAGES['Stays']} 
