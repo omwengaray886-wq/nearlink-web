@@ -2,6 +2,9 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthContextProvider } from '@/context/AuthContext';
 import NextTopLoader from 'nextjs-toploader';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import AnalyticsTracker from '@/components/AnalyticsTracker'; // <--- The Heartbeat
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -31,7 +34,19 @@ export default function RootLayout({ children }) {
         />
 
         <AuthContextProvider>
-          {children}
+          {/* 1. The Invisible Tracker (Must be inside AuthContext) */}
+          <AnalyticsTracker />
+          
+          {/* 2. Global Navbar */}
+          <Navbar />
+          
+          {/* 3. Page Content */}
+          <main className="min-h-screen">
+            {children}
+          </main>
+          
+          {/* 4. Global Footer */}
+          <Footer />
         </AuthContextProvider>
       </body>
     </html>
