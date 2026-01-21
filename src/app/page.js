@@ -51,31 +51,17 @@ const HERO_TEXTS = {
   'Travel Guide': "Travel smarter, go further."
 };
 
-// ✅ ULTRA HD 4K HERO IMAGES
+// ✅ OPTIMIZED HERO IMAGES (Faster Loading)
+// Changed width (w) to 1920 and quality (q) to 75 for speed
 const HERO_IMAGES = {
-  // Stays: Luxury Lodge/Hotel Room with a View
-  'Stays': "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=3540&auto=format&fit=crop", 
-  
-  // Experiences: Stunning Safari Landscape / Wildlife
-  'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=3540&auto=format&fit=crop", 
-  
-  // Transport: Rugged Safari Land Cruiser / Offroad
-  'Transport': "https://images.unsplash.com/photo-1534056262972-e568eb2a297e?q=80&w=3540&auto=format&fit=crop", 
-  
-  // Food: Fine Dining / Culinary Detail
-  'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=3540&auto=format&fit=crop", 
-  
-  // Events: Concert / Festival Atmosphere
-  'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=3540&auto=format&fit=crop", 
-  
-  // Destinations: Breathtaking Landscape
-  'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=3540&auto=format&fit=crop", 
-  
-  // Things To Do: Adventure / Hiking
-  'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=3540&auto=format&fit=crop", 
-  
-  // Travel Guide: Map / Planning
-  'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=3540&auto=format&fit=crop" 
+  'Stays': "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=75", 
+  'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1920&q=75", 
+  'Transport': "https://images.unsplash.com/photo-1534056262972-e568eb2a297e?auto=format&fit=crop&w=1920&q=75", 
+  'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1920&q=75", 
+  'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=75", 
+  'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1920&q=75", 
+  'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=1920&q=75", 
+  'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1920&q=75" 
 };
 
 const STAY_TYPES = ["All Stays", "BnBs", "Guest houses", "Lodges", "Eco stays", "Village homestays", "Luxury villas"];
@@ -103,18 +89,18 @@ const GUIDE_TYPES = ["All Guides", "Local", "Community", "Stories", "Tips"];
 const GUIDE_FILTERS = [{ label: "Verified", icon: ShieldCheck }, { label: "Multilingual", icon: Globe }];
 
 const MOCK_STORIES = [
-  { id: 1, name: "Diani Vibe", image: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?q=80&w=2600", viewed: false },
-  { id: 2, name: "Safari Life", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668", viewed: false },
-  { id: 3, name: "Nairobi Eats", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2574", viewed: true },
-  { id: 4, name: "Lamu Art", image: "https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?q=80&w=2670", viewed: false },
-  { id: 5, name: "Hiking", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560", viewed: true },
+  { id: 1, name: "Diani Vibe", image: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?q=80&w=400", viewed: false },
+  { id: 2, name: "Safari Life", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=400", viewed: false },
+  { id: 3, name: "Nairobi Eats", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=400", viewed: true },
+  { id: 4, name: "Lamu Art", image: "https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?q=80&w=400", viewed: false },
+  { id: 5, name: "Hiking", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=400", viewed: true },
 ];
 
 const MOCK_VIDEOS = [
-  { id: 1, title: "Swimming with Dolphins in Wasini", views: "12k", image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=2670" },
-  { id: 2, title: "Hidden Waterfall in Aberdares", views: "8.5k", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560" },
-  { id: 3, title: "Best Street Food in Mombasa", views: "45k", image: "https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?q=80&w=2670" },
-  { id: 4, title: "Luxury Glamping Maasai Mara", views: "22k", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668" },
+  { id: 1, title: "Swimming with Dolphins in Wasini", views: "12k", image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=600" },
+  { id: 2, title: "Hidden Waterfall in Aberdares", views: "8.5k", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=600" },
+  { id: 3, title: "Best Street Food in Mombasa", views: "45k", image: "https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?q=80&w=600" },
+  { id: 4, title: "Luxury Glamping Maasai Mara", views: "22k", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=600" },
 ];
 
 const MOCK_RECENT = [
@@ -350,14 +336,14 @@ export default function Home() {
       {/* HERO SECTION */}
       <div className="relative h-[85vh] w-full flex flex-col items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-              {/* ✅ DYNAMIC BACKGROUND IMAGE */}
+              {/* ✅ DYNAMIC BACKGROUND IMAGE (Optimized with fetchPriority) */}
               <img 
-                key={activeCategory} // Forces re-render/animation on change
+                key={activeCategory} 
                 src={HERO_IMAGES[activeCategory] || HERO_IMAGES['Stays']} 
                 className="w-full h-full object-cover scale-110 motion-safe:animate-slow-pan transition-opacity duration-700" 
                 alt="Hero"
-                loading="eager"
-                priority="true"
+                loading="eager" // Load immediately
+                fetchPriority="high" // High priority for browser
               />
               <div className="absolute inset-0 bg-gradient-to-b from-[#002c38]/70 via-black/20 to-gray-50/20"></div>
           </div>
