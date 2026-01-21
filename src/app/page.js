@@ -25,7 +25,7 @@ import EventCard from '@/components/EventCard';
 import FoodCard from '@/components/FoodCard'; 
 import TransportCard from '@/components/TransportCard';
 import GuideCard from '@/components/GuideCard';
-import InteractiveMap from '@/components/InteractiveMap'; // 👈 IMPORTED REAL MAP
+import InteractiveMap from '@/components/InteractiveMap'; 
 
 // --- CONSTANTS ---
 const POPULAR_LOCATIONS = [
@@ -39,7 +39,7 @@ const POPULAR_LOCATIONS = [
   { name: "Nanyuki", desc: "Mount Kenya Region" }
 ];
 
-// ✅ DYNAMIC HERO TEXTS MAPPING
+// ✅ DYNAMIC HERO TEXTS
 const HERO_TEXTS = {
   'Stays': "Find your home away from home.",
   'Experiences': "Don't just visit. Live it.",
@@ -49,6 +49,18 @@ const HERO_TEXTS = {
   'Destinations': "Discover your next adventure.",
   'Things To Do': "Create memories that last.",
   'Travel Guide': "Travel smarter, go further."
+};
+
+// ✅ DYNAMIC HERO IMAGES (Changes background based on tab)
+const HERO_IMAGES = {
+  'Stays': "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=2000&q=80", // Cozy Lodge
+  'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=2668&q=80", // Safari
+  'Transport': "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2000&q=80", // Safari Van
+  'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=2000&q=80", // Food
+  'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2000&q=80", // Concert
+  'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=2000&q=80", // Landscape
+  'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=2000&q=80", // Activity
+  'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=2000&q=80" // Map/Guide
 };
 
 const STAY_TYPES = ["All Stays", "BnBs", "Guest houses", "Lodges", "Eco stays", "Village homestays", "Luxury villas"];
@@ -76,27 +88,27 @@ const GUIDE_TYPES = ["All Guides", "Local", "Community", "Stories", "Tips"];
 const GUIDE_FILTERS = [{ label: "Verified", icon: ShieldCheck }, { label: "Multilingual", icon: Globe }];
 
 const MOCK_STORIES = [
-    { id: 1, name: "Diani Vibe", image: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?q=80&w=2600", viewed: false },
-    { id: 2, name: "Safari Life", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668", viewed: false },
-    { id: 3, name: "Nairobi Eats", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2574", viewed: true },
-    { id: 4, name: "Lamu Art", image: "https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?q=80&w=2670", viewed: false },
-    { id: 5, name: "Hiking", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560", viewed: true },
+  { id: 1, name: "Diani Vibe", image: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?q=80&w=2600", viewed: false },
+  { id: 2, name: "Safari Life", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668", viewed: false },
+  { id: 3, name: "Nairobi Eats", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2574", viewed: true },
+  { id: 4, name: "Lamu Art", image: "https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?q=80&w=2670", viewed: false },
+  { id: 5, name: "Hiking", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560", viewed: true },
 ];
 
 const MOCK_VIDEOS = [
-    { id: 1, title: "Swimming with Dolphins in Wasini", views: "12k", image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=2670" },
-    { id: 2, title: "Hidden Waterfall in Aberdares", views: "8.5k", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560" },
-    { id: 3, title: "Best Street Food in Mombasa", views: "45k", image: "https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?q=80&w=2670" },
-    { id: 4, title: "Luxury Glamping Maasai Mara", views: "22k", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668" },
+  { id: 1, title: "Swimming with Dolphins in Wasini", views: "12k", image: "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=2670" },
+  { id: 2, title: "Hidden Waterfall in Aberdares", views: "8.5k", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560" },
+  { id: 3, title: "Best Street Food in Mombasa", views: "45k", image: "https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?q=80&w=2670" },
+  { id: 4, title: "Luxury Glamping Maasai Mara", views: "22k", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668" },
 ];
 
 const MOCK_RECENT = [
-    { id: 1, label: "Mombasa • Dec 12-14", icon: History },
-    { id: 2, label: "Safari Vans", icon: Car },
-    { id: 3, label: "Restaurants in Westlands", icon: UtensilsCrossed },
+  { id: 1, label: "Mombasa • Dec 12-14", icon: History },
+  { id: 2, label: "Safari Vans", icon: Car },
+  { id: 3, label: "Restaurants in Westlands", icon: UtensilsCrossed },
 ];
 
-// --- HELPER COMPONENT (Defined outside Home to prevent re-renders) ---
+// --- HELPER COMPONENT ---
 const GuestCounter = ({ label, desc, value, field, setGuests }) => (
   <div className="flex justify-between items-center py-4 border-b border-gray-100 last:border-0">
     <div>
@@ -265,7 +277,6 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.stopPropagation();
-    // ✅ Pass location query to the search page
     router.push(`/search?location=${encodeURIComponent(searchLocation)}`);
   };
 
@@ -324,9 +335,11 @@ export default function Home() {
       {/* HERO SECTION */}
       <div className="relative h-[85vh] w-full flex flex-col items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
+              {/* ✅ DYNAMIC BACKGROUND IMAGE */}
               <img 
-                src="https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2668" 
-                className="w-full h-full object-cover scale-110 motion-safe:animate-slow-pan" 
+                key={activeCategory} // Forces re-render/animation on change
+                src={HERO_IMAGES[activeCategory] || HERO_IMAGES['Stays']} 
+                className="w-full h-full object-cover scale-110 motion-safe:animate-slow-pan transition-opacity duration-700" 
                 alt="Hero"
                 loading="eager"
                 priority="true"
@@ -498,7 +511,6 @@ export default function Home() {
       {/* MAIN CONTENT GRID */}
       <div className="max-w-[2520px] mx-auto xl:px-20 md:px-10 sm:px-2 px-4 py-8 md:py-12">
          {showMap ? (
-             // ✅ REPLACED PLACEHOLDER WITH REAL MAP
              <div className="h-[600px] w-full bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
                  <InteractiveMap onClose={() => setShowMap(false)} properties={displayedItems} />
              </div>
