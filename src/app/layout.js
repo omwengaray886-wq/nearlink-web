@@ -34,7 +34,7 @@ export default function RootLayout({ children }) {
         />
 
         <AuthContextProvider>
-          {/* 1. The Invisible Tracker (Must be inside AuthContext) */}
+          {/* 1. The Invisible Tracker (Runs on every page view) */}
           <AnalyticsTracker />
           
           {/* 2. Global Navbar */}
