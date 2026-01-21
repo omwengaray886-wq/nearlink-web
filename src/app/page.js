@@ -51,17 +51,16 @@ const HERO_TEXTS = {
   'Travel Guide': "Travel smarter, go further."
 };
 
-// ✅ SUPER-OPTIMIZED HERO IMAGES (WebP + 1600px + Q65)
-// These are tuned to load instantly on 3G/4G while keeping context.
+// ✅ SUPER-OPTIMIZED HERO IMAGES (Fixed Transport Image)
 const HERO_IMAGES = {
-  // Stays: Interior of a Modern BnB / Living Room (Context: Home/Comfort)
+  // Stays: Interior of a Modern BnB / Living Room
   'Stays': "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1600&q=65&fm=webp", 
   
-  // Experiences: Action Shot - Safari Game Drive with Wildlife (Context: Adventure)
+  // Experiences: Action Shot - Safari Game Drive
   'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1600&q=65&fm=webp", 
   
-  // Transport: Safari Land Cruiser on the road (Context: Travel/Vehicle)
-  'Transport': "https://images.unsplash.com/photo-1534056262972-e568eb2a297e?auto=format&fit=crop&w=1600&q=65&fm=webp", 
+  // Transport: Safari Van on a road (Updated to a more reliable link)
+  'Transport': "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1600&q=65&fm=webp", 
   
   // Food: Dining Atmosphere
   'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1600&q=65&fm=webp", 
@@ -351,7 +350,7 @@ export default function Home() {
       {/* HERO SECTION */}
       <div className="relative h-[85vh] w-full flex flex-col items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-              {/* ✅ DYNAMIC BACKGROUND IMAGE (Aggressively Optimized) */}
+              {/* ✅ DYNAMIC BACKGROUND IMAGE (Optimized with fetchPriority) */}
               <img 
                 key={activeCategory} 
                 src={HERO_IMAGES[activeCategory] || HERO_IMAGES['Stays']} 
