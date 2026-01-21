@@ -51,16 +51,31 @@ const HERO_TEXTS = {
   'Travel Guide': "Travel smarter, go further."
 };
 
-// ✅ DYNAMIC HERO IMAGES (Changes background based on tab)
+// ✅ ULTRA HD 4K HERO IMAGES
 const HERO_IMAGES = {
-  'Stays': "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=2000&q=80", // Cozy Lodge
-  'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=2668&q=80", // Safari
-  'Transport': "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2000&q=80", // Safari Van
-  'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=2000&q=80", // Food
-  'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2000&q=80", // Concert
-  'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=2000&q=80", // Landscape
-  'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=2000&q=80", // Activity
-  'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=2000&q=80" // Map/Guide
+  // Stays: Luxury Lodge/Hotel Room with a View
+  'Stays': "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=3540&auto=format&fit=crop", 
+  
+  // Experiences: Stunning Safari Landscape / Wildlife
+  'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=3540&auto=format&fit=crop", 
+  
+  // Transport: Rugged Safari Land Cruiser / Offroad
+  'Transport': "https://images.unsplash.com/photo-1534056262972-e568eb2a297e?q=80&w=3540&auto=format&fit=crop", 
+  
+  // Food: Fine Dining / Culinary Detail
+  'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=3540&auto=format&fit=crop", 
+  
+  // Events: Concert / Festival Atmosphere
+  'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=3540&auto=format&fit=crop", 
+  
+  // Destinations: Breathtaking Landscape
+  'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=3540&auto=format&fit=crop", 
+  
+  // Things To Do: Adventure / Hiking
+  'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=3540&auto=format&fit=crop", 
+  
+  // Travel Guide: Map / Planning
+  'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=3540&auto=format&fit=crop" 
 };
 
 const STAY_TYPES = ["All Stays", "BnBs", "Guest houses", "Lodges", "Eco stays", "Village homestays", "Luxury villas"];
