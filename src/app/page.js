@@ -153,7 +153,7 @@ export default function Home() {
   
   const [activeCategory, setActiveCategory] = useState('Stays');
   const [activeSubCategory, setActiveSubCategory] = useState('All');
-  const [showFullMap, setShowFullMap] = useState(false); // Renamed for clarity
+  const [showFullMap, setShowFullMap] = useState(false); 
   const [scrolled, setScrolled] = useState(false);
   
   // --- USER LOCATION STATE ---
@@ -189,8 +189,9 @@ export default function Home() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 });
+                console.log("✅ User location detected for sorting:", position.coords.latitude, position.coords.longitude);
             },
-            (error) => console.log("Location denied:", error)
+            (error) => console.log("⚠️ Location denied or unavailable:", error.message)
         );
     }
   }, []);
@@ -215,8 +216,9 @@ export default function Home() {
                     price: d.pricePerNight ? Number(d.pricePerNight).toLocaleString() : "0", 
                     image: d.images?.[0] || d.image || d.imageUrl || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2",
                     rating: d.rating || "New",
-                    lat: d.lat || null, // Ensure lat/lng are passed if available
-                    lng: d.lng || null
+                    // ✅ SAFELY PARSE COORDINATES AS NUMBERS
+                    lat: d.lat ? parseFloat(d.lat) : null, 
+                    lng: d.lng ? parseFloat(d.lng) : null
                   };
                 });
             } catch (err) { console.warn("Stays fetch error:", err); }
@@ -326,7 +328,7 @@ export default function Home() {
   };
   const { types } = getSubMenu();
 
-  // --- 3. FILTER & SORT LOGIC (Includes Distance) ---
+  // --- 3. FILTER & SORT LOGIC (Nearest to Farthest) ---
   const getFilteredItems = () => {
       let data = [];
       if (activeCategory === 'Stays') data = realData.stays;
@@ -343,12 +345,18 @@ export default function Home() {
           });
       }
       
-      // Sort by Distance if Location is available AND looking at Stays
+      // ✅ DISTANCE SORTING LOGIC
+      // Only runs if we have user location AND we are looking at Stays
       if (userLocation && activeCategory === 'Stays') {
           filtered = filtered.map(item => {
-              const dist = item.lat && item.lng ? calculateDistance(userLocation.lat, userLocation.lng, item.lat, item.lng) : 99999;
+              // Calculate distance if lat/lng exist. If not, set to 99999 (infinity)
+              const dist = (item.lat !== null && item.lng !== null) 
+                  ? calculateDistance(userLocation.lat, userLocation.lng, item.lat, item.lng) 
+                  : 99999;
               return { ...item, distance: dist };
-          }).sort((a, b) => a.distance - b.distance);
+          })
+          // Sort: Smallest distance first
+          .sort((a, b) => a.distance - b.distance);
       }
       return filtered;
   };
@@ -542,7 +550,6 @@ export default function Home() {
                   ))}
               </div>
               <div className="hidden md:flex gap-2 shrink-0 pl-4 border-l border-gray-200">
-                  {/* Changed showMap to showFullMap for clarity vs the new inline map */}
                   <button onClick={() => setShowFullMap(!showFullMap)} className="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#005871] transition">{showFullMap ? <List size={14} /> : <MapIcon size={14} />} {showFullMap ? 'List' : 'Full Map'}</button>
                   <button className="bg-[#005871] p-2 rounded-xl text-white hover:bg-[#004052]"><SlidersHorizontal size={16}/></button>
               </div>
@@ -576,7 +583,7 @@ export default function Home() {
                    </div>
                )}
 
-               {/* 2. NEW: "STAYS AROUND YOU" MAP (Between Watch & List) */}
+               {/* 2. "STAYS AROUND YOU" MAP (Between Watch & List) */}
                {activeCategory === 'Stays' && (
                    <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                        <div className="flex items-center justify-between mb-6">
@@ -586,7 +593,6 @@ export default function Home() {
                                    {userLocation ? "Stays Around You" : "Explore on Map"}
                                </h3>
                            </div>
-                           {/* If location not found yet, show button to trigger it manually */}
                            {!userLocation && <button className="text-xs font-bold text-[#005871] underline" onClick={() => navigator.geolocation.getCurrentPosition(pos => setUserLocation({lat: pos.coords.latitude, lng: pos.coords.longitude}))}>Enable Location</button>}
                        </div>
                        
@@ -616,7 +622,7 @@ export default function Home() {
                        </div>
                    )}
 
-                   {/* RENDERING CARDS BASED ON CATEGORY */}
+                   {/* RENDERING CARDS */}
                    {activeCategory === 'Stays' && displayedItems.map((stay) => <ListingCard key={stay.id} data={stay} />)}
                    
                    {(activeCategory === 'Experiences' || activeCategory === 'Things To Do') && displayedItems.map((item) => (
@@ -646,7 +652,7 @@ export default function Home() {
          )}
       </div>
 
-      {/* --- HOST CTA SECTION (Restored) --- */}
+      {/* --- HOST CTA SECTION (Same as before) --- */}
       <section className="relative py-20 md:py-32 bg-gradient-to-br from-[#005871] to-[#001a23] overflow-hidden">
         <div className="absolute top-0 right-0 w-[300px] md:w-[600px] h-[600px] bg-white/5 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-0 left-0 w-[200px] md:w-[500px] h-[500px] bg-black/20 rounded-full blur-[100px]"></div>
