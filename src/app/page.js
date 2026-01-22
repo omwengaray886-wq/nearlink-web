@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext'; 
 import { db } from '@/lib/firebase'; 
-import { collection, getDocs, query, limit, orderBy } from 'firebase/firestore'; // Added orderBy
+import { collection, getDocs, query, limit, orderBy } from 'firebase/firestore';
 
 import { 
   ShieldCheck, Zap, Map as MapIcon, UserCheck, CheckCircle, Wifi, Briefcase, Calendar,
   Globe, Sun, Clock, UtensilsCrossed, List, Car, Truck, 
   Search, MapPin, ChevronRight, Play, TrendingUp, CloudSun, History, 
-  Plus, Loader2, Minus, SlidersHorizontal, Navigation, X, Volume2, VolumeX // Added new icons
+  Plus, Loader2, Minus, SlidersHorizontal, Navigation, X, Volume2, VolumeX
 } from 'lucide-react';
 
 // ✅ Components
@@ -63,6 +63,7 @@ const HERO_IMAGES = {
   'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1600&q=65&fm=webp" 
 };
 
+// --- FILTERS ---
 const STAY_TYPES = ["All Stays", "BnBs", "Guest houses", "Lodges", "Eco stays", "Village homestays", "Luxury villas"];
 const STAY_FILTERS = [{ label: "Verified", icon: CheckCircle }, { label: "Work-ready", icon: Briefcase }, { label: "Fast Wifi", icon: Wifi }];
 
@@ -93,22 +94,23 @@ const MOCK_RECENT = [
   { id: 3, label: "Restaurants in Westlands", icon: UtensilsCrossed },
 ];
 
-// --- NEW COMPONENT: STORY VIEWER ---
-// Full screen overlay to view stories when clicked
+// --- HELPER COMPONENTS ---
+
+// 1. Story Viewer Modal (Full Screen)
 const StoryViewer = ({ story, onClose }) => {
     const [progress, setProgress] = useState(0);
 
-    // Auto-advance logic
+    // Auto-close or auto-advance logic
     useEffect(() => {
-        const duration = 5000; 
-        const interval = 50; 
+        const duration = 5000; // 5 seconds per story
+        const interval = 50; // Update every 50ms
         const step = 100 / (duration / interval);
 
         const timer = setInterval(() => {
             setProgress((prev) => {
                 if (prev >= 100) {
                     clearInterval(timer);
-                    onClose(); 
+                    onClose(); // Close when finished
                     return 100;
                 }
                 return prev + step;
@@ -121,27 +123,37 @@ const StoryViewer = ({ story, onClose }) => {
     return (
         <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-in fade-in duration-200">
             <button onClick={onClose} className="absolute top-6 right-6 text-white z-50 p-2 bg-black/20 rounded-full hover:bg-black/50 backdrop-blur-sm"><X size={24}/></button>
+            
+            {/* Progress Bar */}
             <div className="absolute top-4 left-4 right-4 h-1 bg-white/30 rounded-full overflow-hidden z-50">
                 <div style={{ width: `${progress}%` }} className="h-full bg-white transition-all duration-100 ease-linear"></div>
             </div>
+
+            {/* Story Content */}
             <div className="relative h-full w-full md:max-w-md bg-gray-900 aspect-[9/16] md:rounded-2xl overflow-hidden shadow-2xl">
-                {/* Check if video or image */}
+                {/* Determine if video or image based on type or file extension logic */}
                 {story.type === 'video' ? (
                      <video src={story.mediaUrl} autoPlay playsInline className="w-full h-full object-cover" />
                 ) : (
                      <img src={story.mediaUrl} className="w-full h-full object-cover animate-slow-zoom" alt="Story" />
                 )}
+                
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60"></div>
+                
+                {/* Header: Host Info */}
                 <div className="absolute top-8 left-4 flex items-center gap-3">
                     <img src={story.hostAvatar || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"} className="w-10 h-10 rounded-full border-2 border-[#005871] object-cover"/>
                     <span className="text-white font-bold drop-shadow-md">{story.hostName}</span>
                 </div>
+
+                {/* Footer: Caption & CTA */}
                 <div className="absolute bottom-10 left-4 right-4 text-center">
                     <p className="text-white text-lg font-medium mb-6 drop-shadow-md">{story.caption}</p>
-                    {/* Link to Activity if exists */}
                     {story.linkedActivityId && (
                         <Link href={`/experiences/${story.linkedActivityId}`}>
-                            <button className="bg-white text-black font-bold py-3 px-8 rounded-full w-full hover:scale-105 transition shadow-lg">View Details</button>
+                            <button className="bg-white text-black font-bold py-3 px-8 rounded-full w-full hover:scale-105 transition shadow-lg">
+                                View Details
+                            </button>
                         </Link>
                     )}
                 </div>
@@ -150,8 +162,7 @@ const StoryViewer = ({ story, onClose }) => {
     );
 };
 
-// --- NEW COMPONENT: VIDEO CARD ---
-// Used in "Watch & Book" section
+// 2. Video Card for "Watch & Book" (Horizontal Scroll Optimized)
 const VideoCard = ({ vid, router }) => {
     const videoRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -161,7 +172,9 @@ const VideoCard = ({ vid, router }) => {
         setIsHovered(true);
         if(videoRef.current) {
             const playPromise = videoRef.current.play();
-            if (playPromise !== undefined) playPromise.catch(() => {});
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {}); // Prevent error if auto-play blocked
+            }
         }
     };
 
@@ -178,8 +191,11 @@ const VideoCard = ({ vid, router }) => {
             className="relative aspect-[9/16] w-[200px] md:w-[240px] shrink-0 rounded-2xl overflow-hidden group cursor-pointer shadow-lg snap-start border border-gray-100 bg-black"
             onMouseEnter={handleHover}
             onMouseLeave={handleLeave}
-            onClick={() => { if(vid.linkedActivityId) router.push(`/experiences/${vid.linkedActivityId}`); }}
+            onClick={() => {
+                if(vid.linkedActivityId) router.push(`/experiences/${vid.linkedActivityId}`);
+            }}
         >
+            {/* Thumbnail / Placeholder */}
             <div className={`absolute inset-0 bg-gray-800 flex items-center justify-center transition-opacity duration-300 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
                 {vid.type === 'video' ? (
                      <div className="relative w-full h-full">
@@ -190,23 +206,43 @@ const VideoCard = ({ vid, router }) => {
                      <img src={vid.mediaUrl} className="w-full h-full object-cover" />
                 )}
             </div>
+            
+            {/* Active Video Player */}
             {vid.type === 'video' && (
-                <video ref={videoRef} src={vid.mediaUrl} muted={isMuted} loop playsInline className={`absolute inset-0 w-full h-full object-cover ${isHovered ? 'opacity-100' : 'opacity-0'} transition-opacity`} />
+                <video 
+                    ref={videoRef}
+                    src={vid.mediaUrl} 
+                    muted={isMuted}
+                    loop
+                    playsInline
+                    className={`absolute inset-0 w-full h-full object-cover ${isHovered ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+                />
             )}
+
             <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80"></div>
+            
+            {/* Host Badge */}
             <div className="absolute top-3 left-3 flex items-center gap-2">
                  <img src={vid.hostAvatar || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"} className="w-6 h-6 rounded-full border border-white object-cover"/>
                  <span className="text-[10px] text-white font-bold text-shadow drop-shadow-md">{vid.hostName}</span>
             </div>
+            
+            {/* Mute Button */}
             {isHovered && vid.type === 'video' && (
-                <button onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }} className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white p-1.5 rounded-full hover:bg-white/20">
+                <button 
+                    onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+                    className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white p-1.5 rounded-full hover:bg-white/20"
+                >
                     {isMuted ? <VolumeX size={14}/> : <Volume2 size={14}/>}
                 </button>
             )}
+
+            {/* Bottom Info & Book Button */}
             <div className="absolute bottom-4 left-3 right-3">
                 <div className="flex justify-between items-end mb-2">
                     <h4 className="text-white font-bold text-sm leading-tight line-clamp-2 w-full drop-shadow-md">{vid.caption}</h4>
                 </div>
+                
                 <button className="w-full bg-white text-black text-xs font-black py-2.5 rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg">
                     <Zap size={14} className="text-[#005871]" fill="currentColor"/> Book Now
                 </button>
@@ -247,7 +283,9 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; 
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c; 
 };
@@ -260,9 +298,11 @@ export default function Home() {
   const [activeSubCategory, setActiveSubCategory] = useState('All');
   const [showFullMap, setShowFullMap] = useState(false); 
   const [scrolled, setScrolled] = useState(false);
+  
+  // --- USER LOCATION STATE ---
   const [userLocation, setUserLocation] = useState(null);
   
-  // --- REAL DATA STATES ---
+  // --- REAL DATA STATE ---
   const [realData, setRealData] = useState({
       stays: [],
       experiences: [], 
@@ -277,6 +317,7 @@ export default function Home() {
   const [activeStory, setActiveStory] = useState(null); // ✅ Story Modal State
   const [isLoading, setIsLoading] = useState(true);
 
+  // --- ADVANCED SEARCH STATE ---
   const [activeSearchField, setActiveSearchField] = useState(null);
   const [searchLocation, setSearchLocation] = useState("");
   const [checkIn, setCheckIn] = useState("");
@@ -284,22 +325,28 @@ export default function Home() {
   const [guests, setGuests] = useState({ adults: 1, children: 0, infants: 0 });
   const searchRef = useRef(null);
 
-  // --- 1. GEOLOCATION ---
+  // --- 1. GEOLOCATION REQUEST ON LOAD ---
   useEffect(() => {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            (position) => setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
-            (error) => console.log("Location denied")
+            (position) => {
+                setUserLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                });
+                console.log("✅ User location detected:", position.coords);
+            },
+            (error) => console.log("⚠️ Location denied or unavailable:", error.message)
         );
     }
   }, []);
 
-  // --- 2. FETCH REAL DATA ---
+  // --- 2. FETCH REAL DATA FROM FIREBASE ---
   useEffect(() => {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // ✅ A. FETCH STORIES (For both Sections)
+            // ✅ A. FETCH STORIES (For Your Story & Watch&Book)
             try {
                 const storiesQuery = query(collection(db, "stories"), orderBy("createdAt", "desc"), limit(10));
                 const storiesSnap = await getDocs(storiesQuery);
@@ -316,7 +363,7 @@ export default function Home() {
                 setStories(fetchedStories);
             } catch (err) { console.warn("Stories fetch error:", err); }
 
-            // ✅ B. FETCH PROPERTIES (STAYS)
+            // ✅ B. FETCH PROPERTIES (Stays)
             let stays = [];
             try {
                 const staysQuery = query(collection(db, "properties"), limit(20));
@@ -324,7 +371,8 @@ export default function Home() {
                 stays = staysSnap.docs.map(doc => {
                   const d = doc.data();
                   return { 
-                    id: doc.id, ...d,
+                    id: doc.id, 
+                    ...d,
                     title: d.title || d.name || "Untitled Property",
                     location: d.city || d.location || "Nairobi, Kenya",
                     price: d.pricePerNight ? Number(d.pricePerNight).toLocaleString() : "0", 
@@ -344,7 +392,8 @@ export default function Home() {
                 experiences = expSnap.docs.map(doc => {
                   const d = doc.data();
                   return { 
-                    id: doc.id, ...d,
+                    id: doc.id, 
+                    ...d,
                     title: d.title || d.category || "Experience",
                     price: d.price ? Number(d.price).toLocaleString() : "0",
                     image: d.imageUrl || d.image || "https://images.unsplash.com/photo-1544551763-46a013bb70d5",
@@ -359,7 +408,8 @@ export default function Home() {
                 const foodQuery = query(collection(db, "food"), limit(20));
                 const foodSnap = await getDocs(foodQuery);
                 food = foodSnap.docs.map(doc => ({ 
-                    id: doc.id, ...doc.data(),
+                    id: doc.id, 
+                    ...doc.data(),
                     title: doc.data().title || doc.data().name || "Restaurant",
                     image: doc.data().imageurl || doc.data().image || "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b"
                 }));
@@ -371,7 +421,8 @@ export default function Home() {
                 const guidesQuery = query(collection(db, "guides"), limit(20));
                 const guidesSnap = await getDocs(guidesQuery);
                 guides = guidesSnap.docs.map(doc => ({
-                    id: doc.id, ...doc.data(),
+                    id: doc.id,
+                    ...doc.data(),
                     name: doc.data().name || "Expert Guide",
                     image: doc.data().imageUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
                 }));
@@ -385,7 +436,8 @@ export default function Home() {
                 transport = transportSnap.docs.map(doc => {
                   const d = doc.data();
                   return {
-                    id: doc.id, ...d,
+                    id: doc.id,
+                    ...d,
                     title: d.make ? `${d.make} ${d.model}` : (d.title || "Rental"),
                     price: d.pricePerDay ? Number(d.pricePerDay).toLocaleString() : "0",
                     image: d.imageUrl || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2",
@@ -395,8 +447,11 @@ export default function Home() {
             } catch (err) { console.warn("Transport fetch error:", err); }
 
             setRealData({ stays, experiences, food, transport, events: [], destinations: [], things: [], guides });
-        } catch (error) { console.error("Global Fetch Error:", error); } 
-        finally { setIsLoading(false); }
+        } catch (error) {
+            console.error("Global Fetch Error:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
     fetchData();
   }, []);
@@ -405,7 +460,9 @@ export default function Home() {
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) setActiveSearchField(null);
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setActiveSearchField(null);
+      }
     };
     window.addEventListener('scroll', handleScroll);
     document.addEventListener('mousedown', handleClickOutside);
@@ -432,6 +489,7 @@ export default function Home() {
   };
   const { types } = getSubMenu();
 
+  // --- 3. FILTER & SORT LOGIC (Nearest to Farthest) ---
   const getFilteredItems = () => {
       let data = [];
       if (activeCategory === 'Stays') data = realData.stays;
@@ -448,12 +506,14 @@ export default function Home() {
           });
       }
       
-      // Distance Sorting (Only for Stays if Location exists)
+      // ✅ DISTANCE SORTING LOGIC
       if (userLocation && activeCategory === 'Stays') {
-          filtered = filtered.map(item => ({
-              ...item, 
-              distance: (item.lat && item.lng) ? calculateDistance(userLocation.lat, userLocation.lng, item.lat, item.lng) : 99999 
-          })).sort((a, b) => a.distance - b.distance);
+          filtered = filtered.map(item => {
+              const dist = (item.lat !== null && item.lng !== null) 
+                  ? calculateDistance(userLocation.lat, userLocation.lng, item.lat, item.lng) 
+                  : 99999;
+              return { ...item, distance: dist };
+          }).sort((a, b) => a.distance - b.distance);
       }
       return filtered;
   };
@@ -463,14 +523,30 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50/50 font-sans text-gray-900 selection:bg-[#005871] selection:text-white pb-0">
       
+      {/* DYNAMIC ISLAND NOTIFICATION */}
+      <div 
+        onClick={() => router.push('/search')}
+        className="fixed top-20 md:top-4 left-1/2 -translate-x-1/2 z-[40] animate-fade-in-down hidden lg:flex cursor-pointer hover:scale-105 transition-transform"
+      >
+          <div className="bg-[#005871]/95 backdrop-blur-xl text-white px-5 py-2.5 rounded-full text-xs font-medium flex items-center gap-3 shadow-2xl border border-white/10 ring-1 ring-white/20">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="flex items-center gap-1"><CloudSun size={12} className="text-yellow-400"/> Diani Beach is 28°C today</span>
+              <div className="w-[1px] h-3 bg-white/20"></div>
+              <span className="font-bold text-white">Book a flight now</span>
+          </div>
+      </div>
+
       <Navbar transparent={!scrolled} />
 
       {/* --- 1. STORY VIEWER MODAL (NEW) --- */}
       {activeStory && (
           <StoryViewer story={activeStory} onClose={() => setActiveStory(null)} />
       )}
-
-      {/* --- HERO SECTION --- */}
+      
+      {/* HERO SECTION (ORIGINAL LAYOUT) */}
       <div className="relative h-[85vh] w-full flex flex-col items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
               <img 
@@ -485,7 +561,6 @@ export default function Home() {
           </div>
 
           <div className="relative z-10 w-full max-w-7xl px-4 md:px-6 flex flex-col items-center text-center mt-12">
-              {/* Category Pills (Original) */}
               <div className="mb-6 md:mb-8 flex gap-1 p-1.5 bg-white/10 backdrop-blur-xl rounded-full border border-white/15 shadow-2xl overflow-x-auto no-scrollbar max-w-[90vw]">
                   {['Stays', 'Experiences', 'Transport'].map(cat => (
                       <button 
@@ -503,10 +578,14 @@ export default function Home() {
               </div>
 
               <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white mb-8 tracking-tight drop-shadow-2xl leading-tight">
-                  {user?.name ? `Welcome back, ${user.name.split(' ')[0]}.` : (HERO_TEXTS[activeCategory] || "Wake up Here.")}
+                  {user?.name ? (
+                    `Welcome back, ${user.name.split(' ')[0]}.`
+                  ) : (
+                    HERO_TEXTS[activeCategory] || "Wake up Here."
+                  )}
               </h1>
               
-              {/* SEARCH BAR (Original) */}
+              {/* SEARCH BAR */}
               <div 
                     ref={searchRef}
                     className={`w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-2 flex flex-col md:flex-row gap-2 md:gap-0 relative z-20 border border-white/50 transition-all duration-200 ${activeSearchField ? 'bg-gray-100' : ''}`}
@@ -518,8 +597,15 @@ export default function Home() {
                     onClick={() => setActiveSearchField('location')}
                   >
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block group-hover:text-[#005871]">Location</label>
-                      <input type="text" placeholder="Where to?" value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)} className="w-full text-lg font-bold bg-transparent outline-none placeholder-gray-300 text-gray-900 truncate" />
+                      <input 
+                        type="text" 
+                        placeholder="Where to?" 
+                        value={searchLocation}
+                        onChange={(e) => setSearchLocation(e.target.value)}
+                        className="w-full text-lg font-bold bg-transparent outline-none placeholder-gray-300 text-gray-900 truncate"
+                      />
                       <MapPin className={`absolute right-4 top-1/2 -translate-y-1/2 transition ${activeSearchField === 'location' ? 'text-[#005871]' : 'text-gray-300'}`} size={20}/>
+                      
                       {activeSearchField === 'location' && (
                         <div className="absolute top-full left-0 mt-4 w-full md:w-[350px] bg-white rounded-3xl shadow-2xl p-6 overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
                            <h4 className="text-xs font-bold text-gray-500 mb-3 px-2">POPULAR DESTINATIONS</h4>
@@ -534,20 +620,30 @@ export default function Home() {
                         </div>
                       )}
                   </div>
+
                   <div className="w-[1px] h-10 bg-gray-200 my-auto hidden md:block"></div>
+
                   {/* 2. DATES */}
-                  <div className={`flex-[1.5] rounded-[1.5rem] px-4 md:px-6 py-4 cursor-pointer transition group relative text-left ${activeSearchField === 'dates' ? 'bg-white shadow-lg z-30' : 'hover:bg-gray-50'}`} onClick={() => setActiveSearchField('dates')}>
+                  <div 
+                    className={`flex-[1.5] rounded-[1.5rem] px-4 md:px-6 py-4 cursor-pointer transition group relative text-left ${activeSearchField === 'dates' ? 'bg-white shadow-lg z-30' : 'hover:bg-gray-50'}`}
+                    onClick={() => setActiveSearchField('dates')}
+                  >
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block group-hover:text-[#005871]">Dates</label>
                       <div className="flex items-center gap-2">
-                          <input type="text" placeholder="Check in" className="w-full text-sm font-bold bg-transparent outline-none placeholder-gray-300 text-gray-900" onFocus={(e) => e.target.type = 'date'} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
+                          <input type="text" placeholder="Check in" className="w-full text-sm font-bold bg-transparent outline-none placeholder-gray-300 text-gray-900" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => { if(!e.target.value) e.target.type = 'text'; }} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
                           <span className="text-gray-300">|</span>
-                          <input type="text" placeholder="Check out" className="w-full text-sm font-bold bg-transparent outline-none placeholder-gray-300 text-gray-900" onFocus={(e) => e.target.type = 'date'} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
+                          <input type="text" placeholder="Check out" className="w-full text-sm font-bold bg-transparent outline-none placeholder-gray-300 text-gray-900" onFocus={(e) => e.target.type = 'date'} onBlur={(e) => { if(!e.target.value) e.target.type = 'text'; }} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
                       </div>
                       <Calendar className={`absolute right-4 top-1/2 -translate-y-1/2 transition ${activeSearchField === 'dates' ? 'text-[#005871]' : 'text-gray-300'}`} size={20}/>
                   </div>
+
                   <div className="w-[1px] h-10 bg-gray-200 my-auto hidden md:block"></div>
+
                   {/* 3. GUESTS */}
-                  <div className={`flex-1 rounded-[1.5rem] px-4 md:px-6 py-4 cursor-pointer transition group relative text-left ${activeSearchField === 'guests' ? 'bg-white shadow-lg z-30' : 'hover:bg-gray-50'}`} onClick={() => setActiveSearchField('guests')}>
+                  <div 
+                    className={`flex-1 rounded-[1.5rem] px-4 md:px-6 py-4 cursor-pointer transition group relative text-left ${activeSearchField === 'guests' ? 'bg-white shadow-lg z-30' : 'hover:bg-gray-50'}`}
+                    onClick={() => setActiveSearchField('guests')}
+                  >
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block group-hover:text-[#005871]">Guests</label>
                       <div className="text-lg font-bold text-gray-900 truncate">{guests.adults + guests.children > 0 ? `${guests.adults + guests.children} Guests` : 'Add guests'}</div>
                       <UserCheck className={`absolute right-4 top-1/2 -translate-y-1/2 transition ${activeSearchField === 'guests' ? 'text-[#005871]' : 'text-gray-300'}`} size={20}/>
@@ -559,6 +655,7 @@ export default function Home() {
                         </div>
                       )}
                   </div>
+
                   {/* Search Button */}
                   <button onClick={handleSearch} className="bg-[#005871] hover:bg-[#004052] text-white p-4 md:p-5 rounded-[1.5rem] transition-all duration-300 shadow-xl flex items-center justify-center w-full md:w-auto aspect-auto md:aspect-square group my-auto md:mr-1">
                       <span className="md:hidden font-bold mr-2">Search</span>
@@ -635,11 +732,11 @@ export default function Home() {
              </div>
          ) : (
              <>
-               {/* 1. WATCH & BOOK (REAL DATA) */}
+               {/* 1. WATCH & BOOK (REAL DATA + HORIZONTAL SCROLL) */}
                {!['Transport', 'Travel Guide'].includes(activeCategory) && stories.length > 0 && (
                    <div className="mb-10">
                        <div className="flex items-center gap-2 mb-6"><div className="bg-[#005871] p-1.5 rounded-lg text-white"><Play size={16} fill="currentColor" /></div><h3 className="text-lg md:text-xl font-bold">Watch & Book</h3></div>
-                       <div className="flex gap-4 overflow-x-auto pb-4 snap-x md:grid md:grid-cols-4 md:overflow-visible">
+                       <div className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory no-scrollbar scroll-smooth">
                            {stories.map((vid) => (
                                <VideoCard key={vid.id} vid={vid} router={router} />
                            ))}
@@ -676,7 +773,7 @@ export default function Home() {
                    </div>
                )}
 
-               {/* 3. LISTINGS GRID (ALL CATEGORIES RESTORED) */}
+               {/* 3. LISTINGS GRID (ALL CATEGORIES) */}
                <div className={`grid gap-6 md:gap-8 ${activeCategory === 'Stays' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'}`}>
                    {isLoading && (<div className="col-span-full h-64 flex items-center justify-center"><Loader2 className="animate-spin w-12 h-12 text-[#005871]" /></div>)}
                    
@@ -716,7 +813,7 @@ export default function Home() {
          )}
       </div>
 
-      {/* --- HOST CTA SECTION --- */}
+      {/* --- HOST CTA SECTION (Original) --- */}
       <section className="relative py-20 md:py-32 bg-gradient-to-br from-[#005871] to-[#001a23] overflow-hidden">
         <div className="absolute top-0 right-0 w-[300px] md:w-[600px] h-[600px] bg-white/5 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-0 left-0 w-[200px] md:w-[500px] h-[500px] bg-black/20 rounded-full blur-[100px]"></div>
