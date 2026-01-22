@@ -363,7 +363,7 @@ export default function Home() {
                 setStories(fetchedStories);
             } catch (err) { console.warn("Stories fetch error:", err); }
 
-            // ✅ B. FETCH PROPERTIES (Stays)
+            // ✅ B. FETCH PROPERTIES (STAYS)
             let stays = [];
             try {
                 const staysQuery = query(collection(db, "properties"), limit(20));
@@ -812,51 +812,6 @@ export default function Home() {
             </>
          )}
       </div>
-
-      {/* --- HOST CTA SECTION (Original) --- */}
-      <section className="relative py-20 md:py-32 bg-gradient-to-br from-[#005871] to-[#001a23] overflow-hidden">
-        <div className="absolute top-0 right-0 w-[300px] md:w-[600px] h-[600px] bg-white/5 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-[200px] md:w-[500px] h-[500px] bg-black/20 rounded-full blur-[100px]"></div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 border border-white/10 bg-white/5 rounded-full px-4 py-1.5 text-xs font-bold text-white mb-6 md:mb-8 backdrop-blur-md">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>Recruiting New Partners
-              </div>
-              <h2 className="text-4xl md:text-6xl font-black text-white mb-4 md:mb-6 leading-tight">Don't just list. <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">Build an empire.</span></h2>
-              <p className="text-base md:text-lg text-white/70 mb-8 leading-relaxed max-w-md mx-auto lg:mx-0">Join the top 1% of hosts using NearLink's AI-driven pricing and automated management tools to maximize revenue.</p>
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4 mb-10 md:mb-12">
-                <div className="flex flex-col"><span className="text-2xl md:text-3xl font-black text-white">30%</span><span className="text-xs text-white/50 uppercase tracking-wider">More Revenue</span></div>
-                <div className="w-px h-12 bg-white/10 mx-4"></div>
-                <div className="flex flex-col"><span className="text-2xl md:text-3xl font-black text-white">24/7</span><span className="text-xs text-white/50 uppercase tracking-wider">Support</span></div>
-                <div className="w-px h-12 bg-white/10 mx-4"></div>
-                <div className="flex flex-col"><span className="text-2xl md:text-3xl font-black text-white">0%</span><span className="text-xs text-white/50 uppercase tracking-wider">Listing Fee</span></div>
-              </div>
-              
-              <Link href="/host">
-                <button className="group bg-white text-[#005871] px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition shadow-[0_0_30px_rgba(255,255,255,0.2)] flex items-center gap-3 mx-auto lg:mx-0">
-                  Become a Partner <ChevronRight size={20} className="group-hover:translate-x-1 transition"/>
-                </button>
-              </Link>
-            </div>
-            
-            <div className="relative h-[300px] md:h-[500px] w-full hidden lg:block">
-              <div className="absolute top-10 right-10 w-80 bg-white/10 border border-white/20 rounded-2xl p-6 transform rotate-6 backdrop-blur-md scale-90">
-                 <div className="h-4 w-24 bg-white/20 rounded mb-4"></div><div className="h-32 bg-black/20 rounded-xl w-full"></div>
-              </div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 bg-white border border-white/10 rounded-3xl p-6 shadow-2xl z-10">
-                 <div className="flex justify-between items-center mb-6"><div><p className="text-xs text-gray-500 font-bold uppercase">This Month</p><h4 className="text-3xl font-black text-[#005871]">KES 145,200</h4></div><div className="w-10 h-10 bg-[#005871]/10 text-[#005871] rounded-full flex items-center justify-center"><TrendingUp size={20} /></div></div>
-                 <div className="flex items-end justify-between gap-2 h-24 mb-4"><div className="w-full bg-gray-200 rounded-t-sm h-[40%]"></div><div className="w-full bg-gray-200 rounded-t-sm h-[60%]"></div><div className="w-full bg-gray-200 rounded-t-sm h-[30%]"></div><div className="w-full bg-[#005871] rounded-t-sm h-[85%] relative group cursor-pointer"><div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">High</div></div><div className="w-full bg-gray-200 rounded-t-sm h-[50%]"></div></div>
-                 <div className="flex items-center gap-2 text-xs text-green-600 font-bold bg-green-50 p-2 rounded-lg"><CheckCircle size={12}/> Payout scheduled for tomorrow</div>
-              </div>
-              <div className="absolute bottom-20 -left-10 bg-[#005871] text-white p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 flex items-center gap-4 animate-in slide-in-from-bottom-8 duration-1000 delay-500">
-                 <div className="relative"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" className="w-12 h-12 rounded-full object-cover border-2 border-white"/><div className="absolute -bottom-1 -right-1 bg-white text-[#005871] text-[10px] font-bold px-1.5 rounded-full border border-[#005871]">5.0</div></div>
-                 <div><p className="font-bold text-sm">New 5-Star Review!</p><p className="text-xs text-white/70">"Best host in Nairobi..."</p></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </main>
