@@ -11,7 +11,7 @@ import {
   ShieldCheck, Zap, Map as MapIcon, UserCheck, CheckCircle, Wifi, Briefcase, Calendar,
   Globe, Sun, Clock, UtensilsCrossed, List, Car, Truck, 
   Search, MapPin, ChevronRight, Play, TrendingUp, CloudSun, History, 
-  Plus, Loader2, Minus, SlidersHorizontal
+  Plus, Loader2, Minus, SlidersHorizontal, Navigation
 } from 'lucide-react';
 
 // ✅ Components
@@ -51,30 +51,15 @@ const HERO_TEXTS = {
   'Travel Guide': "Travel smarter, go further."
 };
 
-// ✅ SUPER-OPTIMIZED HERO IMAGES (Fixed Transport Image)
+// ✅ SUPER-OPTIMIZED HERO IMAGES
 const HERO_IMAGES = {
-  // Stays: Interior of a Modern BnB / Living Room
   'Stays': "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1600&q=65&fm=webp", 
-  
-  // Experiences: Action Shot - Safari Game Drive
   'Experiences': "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1600&q=65&fm=webp", 
-  
-  // Transport: Safari Van on a road (Updated to a more reliable link)
   'Transport': "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1600&q=65&fm=webp", 
-  
-  // Food: Dining Atmosphere
   'Food & Nightlife': "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1600&q=65&fm=webp", 
-  
-  // Events: Festival Crowd
   'Events': "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1600&q=65&fm=webp", 
-  
-  // Destinations: Iconic Landscape
   'Destinations': "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1600&q=65&fm=webp", 
-  
-  // Things To Do: Hiking/Active
   'Things To Do': "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=1600&q=65&fm=webp", 
-  
-  // Travel Guide: Map/Planning
   'Travel Guide': "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1600&q=65&fm=webp" 
 };
 
@@ -149,14 +134,30 @@ const GuestCounter = ({ label, desc, value, field, setGuests }) => (
   </div>
 );
 
+// --- HELPER FOR DISTANCE (Haversine) ---
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    const R = 6371; // Radius of earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in km
+};
+
 export default function Home() {
   const router = useRouter(); 
   const { user } = useAuth() || {}; 
   
   const [activeCategory, setActiveCategory] = useState('Stays');
   const [activeSubCategory, setActiveSubCategory] = useState('All');
-  const [showMap, setShowMap] = useState(false); 
+  const [showFullMap, setShowFullMap] = useState(false); // Renamed for clarity
   const [scrolled, setScrolled] = useState(false);
+  
+  // --- USER LOCATION STATE ---
+  const [userLocation, setUserLocation] = useState(null);
   
   // --- REAL DATA STATE ---
   const [realData, setRealData] = useState({
@@ -179,7 +180,22 @@ export default function Home() {
   const [guests, setGuests] = useState({ adults: 1, children: 0, infants: 0 });
   const searchRef = useRef(null);
 
-  // --- FETCH REAL DATA FROM FIREBASE ---
+  // --- 1. GEOLOCATION REQUEST ON LOAD ---
+  useEffect(() => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setUserLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                });
+            },
+            (error) => console.log("Location denied:", error)
+        );
+    }
+  }, []);
+
+  // --- 2. FETCH REAL DATA FROM FIREBASE ---
   useEffect(() => {
     const fetchData = async () => {
         setIsLoading(true);
@@ -198,7 +214,9 @@ export default function Home() {
                     location: d.city || d.location || "Nairobi, Kenya",
                     price: d.pricePerNight ? Number(d.pricePerNight).toLocaleString() : "0", 
                     image: d.images?.[0] || d.image || d.imageUrl || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2",
-                    rating: d.rating || "New"
+                    rating: d.rating || "New",
+                    lat: d.lat || null, // Ensure lat/lng are passed if available
+                    lng: d.lng || null
                   };
                 });
             } catch (err) { console.warn("Stays fetch error:", err); }
@@ -275,6 +293,7 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // Scroll & Outside Click
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     const handleClickOutside = (event) => {
@@ -307,6 +326,7 @@ export default function Home() {
   };
   const { types } = getSubMenu();
 
+  // --- 3. FILTER & SORT LOGIC (Includes Distance) ---
   const getFilteredItems = () => {
       let data = [];
       if (activeCategory === 'Stays') data = realData.stays;
@@ -315,13 +335,22 @@ export default function Home() {
       else if (activeCategory === 'Transport') data = realData.transport;
       else if (activeCategory === 'Travel Guide') data = realData.guides;
       
+      let filtered = data;
       if (activeSubCategory !== 'All' && !activeSubCategory.startsWith('All')) {
-          return data.filter(item => {
+          filtered = data.filter(item => {
               const text = [item.category, item.type, item.title, item.location, item.name].filter(Boolean).join(" ").toLowerCase();
               return text.includes(activeSubCategory.toLowerCase());
           });
       }
-      return data;
+      
+      // Sort by Distance if Location is available AND looking at Stays
+      if (userLocation && activeCategory === 'Stays') {
+          filtered = filtered.map(item => {
+              const dist = item.lat && item.lng ? calculateDistance(userLocation.lat, userLocation.lng, item.lat, item.lng) : 99999;
+              return { ...item, distance: dist };
+          }).sort((a, b) => a.distance - b.distance);
+      }
+      return filtered;
   };
 
   const displayedItems = getFilteredItems();
@@ -329,7 +358,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50/50 font-sans text-gray-900 selection:bg-[#005871] selection:text-white pb-0">
       
-      {/* DYNAMIC ISLAND NOTIFICATION */}
+      {/* DYNAMIC ISLAND */}
       <div 
         onClick={() => router.push('/search')}
         className="fixed top-20 md:top-4 left-1/2 -translate-x-1/2 z-[40] animate-fade-in-down hidden lg:flex cursor-pointer hover:scale-105 transition-transform"
@@ -350,20 +379,18 @@ export default function Home() {
       {/* HERO SECTION */}
       <div className="relative h-[85vh] w-full flex flex-col items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-              {/* ✅ DYNAMIC BACKGROUND IMAGE (Optimized with fetchPriority) */}
               <img 
                 key={activeCategory} 
                 src={HERO_IMAGES[activeCategory] || HERO_IMAGES['Stays']} 
                 className="w-full h-full object-cover scale-110 motion-safe:animate-slow-pan transition-opacity duration-700" 
                 alt="Hero"
-                loading="eager" // Load immediately
-                fetchPriority="high" // High priority for browser
+                loading="eager" 
+                fetchPriority="high"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-[#002c38]/70 via-black/20 to-gray-50/20"></div>
           </div>
 
           <div className="relative z-10 w-full max-w-7xl px-4 md:px-6 flex flex-col items-center text-center mt-12">
-              
               <div className="mb-6 md:mb-8 flex gap-1 p-1.5 bg-white/10 backdrop-blur-xl rounded-full border border-white/15 shadow-2xl overflow-x-auto no-scrollbar max-w-[90vw]">
                   {['Stays', 'Experiences', 'Transport'].map(cat => (
                       <button 
@@ -380,7 +407,6 @@ export default function Home() {
                   ))}
               </div>
 
-              {/* ✅ RESPONSIVE & DYNAMIC HERO TEXT */}
               <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white mb-8 tracking-tight drop-shadow-2xl leading-tight">
                   {user?.name ? (
                     `Welcome back, ${user.name.split(' ')[0]}.`
@@ -389,7 +415,7 @@ export default function Home() {
                   )}
               </h1>
               
-              {/* RESPONSIVE SEARCH BAR */}
+              {/* SEARCH BAR */}
               <div 
                     ref={searchRef}
                     className={`w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-2 flex flex-col md:flex-row gap-2 md:gap-0 relative z-20 border border-white/50 transition-all duration-200 ${activeSearchField ? 'bg-gray-100' : ''}`}
@@ -516,7 +542,8 @@ export default function Home() {
                   ))}
               </div>
               <div className="hidden md:flex gap-2 shrink-0 pl-4 border-l border-gray-200">
-                  <button onClick={() => setShowMap(!showMap)} className="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#005871] transition">{showMap ? <List size={14} /> : <MapIcon size={14} />} {showMap ? 'List' : 'Map'}</button>
+                  {/* Changed showMap to showFullMap for clarity vs the new inline map */}
+                  <button onClick={() => setShowFullMap(!showFullMap)} className="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#005871] transition">{showFullMap ? <List size={14} /> : <MapIcon size={14} />} {showFullMap ? 'List' : 'Full Map'}</button>
                   <button className="bg-[#005871] p-2 rounded-xl text-white hover:bg-[#004052]"><SlidersHorizontal size={16}/></button>
               </div>
            </div>
@@ -525,15 +552,16 @@ export default function Home() {
 
       {/* MAIN CONTENT GRID */}
       <div className="max-w-[2520px] mx-auto xl:px-20 md:px-10 sm:px-2 px-4 py-8 md:py-12">
-         {showMap ? (
+         {/* If user clicks "Full Map", show large map covering everything */}
+         {showFullMap ? (
              <div className="h-[600px] w-full bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                 <InteractiveMap onClose={() => setShowMap(false)} properties={displayedItems} />
+                 <InteractiveMap onClose={() => setShowFullMap(false)} properties={displayedItems} center={userLocation} />
              </div>
          ) : (
              <>
-               {/* WATCH & BOOK */}
+               {/* 1. WATCH & BOOK (Always on top now) */}
                {!['Transport', 'Travel Guide'].includes(activeCategory) && (
-                   <div className="mb-10 md:mb-16">
+                   <div className="mb-10">
                        <div className="flex items-center gap-2 mb-6"><div className="bg-[#005871] p-1.5 rounded-lg text-white"><Play size={16} fill="currentColor" /></div><h3 className="text-lg md:text-xl font-bold">Watch & Book</h3></div>
                        <div className="flex gap-4 overflow-x-auto pb-4 snap-x md:grid md:grid-cols-4 md:overflow-visible">
                            {MOCK_VIDEOS.map((vid) => (
@@ -548,7 +576,37 @@ export default function Home() {
                    </div>
                )}
 
-               {/* GRID DISPLAY */}
+               {/* 2. NEW: "STAYS AROUND YOU" MAP (Between Watch & List) */}
+               {activeCategory === 'Stays' && (
+                   <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                       <div className="flex items-center justify-between mb-6">
+                           <div className="flex items-center gap-2">
+                               <div className="bg-green-100 p-1.5 rounded-lg text-green-700 animate-pulse"><Navigation size={16} /></div>
+                               <h3 className="text-lg md:text-xl font-bold">
+                                   {userLocation ? "Stays Around You" : "Explore on Map"}
+                               </h3>
+                           </div>
+                           {/* If location not found yet, show button to trigger it manually */}
+                           {!userLocation && <button className="text-xs font-bold text-[#005871] underline" onClick={() => navigator.geolocation.getCurrentPosition(pos => setUserLocation({lat: pos.coords.latitude, lng: pos.coords.longitude}))}>Enable Location</button>}
+                       </div>
+                       
+                       <div className="h-[350px] md:h-[450px] w-full bg-gray-100 rounded-3xl border border-gray-200 shadow-inner overflow-hidden relative">
+                           {/* Passes displayed properties (sorted by distance if location exists) */}
+                           <InteractiveMap 
+                               properties={displayedItems} 
+                               center={userLocation || { lat: -1.2921, lng: 36.8219 }} // Default to Nairobi
+                               zoom={userLocation ? 13 : 11}
+                           />
+                           {!userLocation && (
+                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg text-xs font-bold text-gray-700 flex items-center gap-2 z-[400]">
+                               <MapPin size={12}/> Showing Popular Stays in Nairobi
+                             </div>
+                           )}
+                       </div>
+                   </div>
+               )}
+
+               {/* 3. LISTINGS GRID */}
                <div className={`grid gap-6 md:gap-8 ${activeCategory === 'Stays' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'}`}>
                    {isLoading && (<div className="col-span-full h-64 flex items-center justify-center"><Loader2 className="animate-spin w-12 h-12 text-[#005871]" /></div>)}
                    
@@ -588,7 +646,7 @@ export default function Home() {
          )}
       </div>
 
-      {/* --- HOST CTA SECTION --- */}
+      {/* --- HOST CTA SECTION (Restored) --- */}
       <section className="relative py-20 md:py-32 bg-gradient-to-br from-[#005871] to-[#001a23] overflow-hidden">
         <div className="absolute top-0 right-0 w-[300px] md:w-[600px] h-[600px] bg-white/5 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-0 left-0 w-[200px] md:w-[500px] h-[500px] bg-black/20 rounded-full blur-[100px]"></div>
