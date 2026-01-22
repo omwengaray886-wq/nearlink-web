@@ -6,12 +6,12 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { 
   collection, query, where, onSnapshot, orderBy, 
-  addDoc, serverTimestamp, updateDoc, doc, getDoc, limit 
+  addDoc, serverTimestamp, updateDoc, doc, getDoc 
 } from 'firebase/firestore';
 import { 
   Send, Search, MoreVertical, Phone, Video, 
-  Info, Image as ImageIcon, Mic, Smile, ChevronLeft, Loader2,
-  Check, CheckCheck, ArrowDown, Paperclip, Bell
+  Info, Image as ImageIcon, Mic, ChevronLeft, Loader2,
+  CheckCheck, ArrowDown, Paperclip, Plus, Smile
 } from 'lucide-react';
 
 import Navbar from '@/components/Navbar';
@@ -39,7 +39,7 @@ const playNotificationSound = () => {
     try {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
         audio.volume = 0.5;
-        audio.play().catch(() => {}); // Catch autoplay errors
+        audio.play().catch(() => {}); 
     } catch (e) {}
 };
 
@@ -55,7 +55,7 @@ export default function MessagesPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [otherUserProfiles, setOtherUserProfiles] = useState({});
-  const [isTyping, setIsTyping] = useState(false); // Visual typing state
+  const [isTyping, setIsTyping] = useState(false); 
 
   const scrollRef = useRef();
   const messagesContainerRef = useRef();
@@ -111,7 +111,6 @@ export default function MessagesPage() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // Check if a new message arrived from someone else
       snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
               const msgData = change.doc.data();
@@ -131,7 +130,6 @@ export default function MessagesPage() {
     return () => unsubscribe();
   }, [activeChat]);
 
-  // Scroll Handler
   const scrollToBottom = () => {
     setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
@@ -142,7 +140,6 @@ export default function MessagesPage() {
       setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 300);
   };
 
-  // --- SEND HANDLER ---
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !activeChat || !user) return;
@@ -156,7 +153,7 @@ export default function MessagesPage() {
         senderId: user.uid,
         createdAt: serverTimestamp(),
         read: false,
-        type: 'text' // Can be 'image' later
+        type: 'text' 
       });
 
       await updateDoc(doc(db, 'chats', activeChat.id), {
@@ -169,7 +166,6 @@ export default function MessagesPage() {
     }
   };
 
-  // --- RENDER HELPERS ---
   const getOtherUser = (chat) => {
       if(!user) return null;
       const otherId = chat.participants.find(id => id !== user.uid);
@@ -193,21 +189,25 @@ export default function MessagesPage() {
   if (loading || !user) return <div className="h-screen flex items-center justify-center bg-gray-50"><Loader2 className="animate-spin text-[#005871] w-10 h-10"/></div>;
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden font-sans">
-      <div className="bg-white border-b border-gray-200 shrink-0 z-20 shadow-sm"><Navbar /></div>
+    <div className="h-screen bg-gray-50 flex flex-col font-sans overflow-hidden">
+      {/* Navbar is mostly fixed, so we rely on the main div's padding to push content down */}
+      <Navbar /> 
 
-      <div className="flex-1 max-w-[1920px] mx-auto w-full flex overflow-hidden relative">
+      {/* ✅ ADDED PT-24 TO CLEAR FIXED NAVBAR */}
+      <div className="flex-1 flex overflow-hidden pt-24 relative max-w-[1920px] mx-auto w-full">
         
         {/* --- SIDEBAR --- */}
         <div className={`
-            absolute inset-0 z-10 bg-white md:relative md:w-80 lg:w-96 border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out
+            absolute inset-y-0 left-0 z-20 bg-white md:relative md:w-80 lg:w-96 border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out shadow-xl md:shadow-none
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}>
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white">
+            {/* Sidebar Header */}
+            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
                 <h2 className="font-extrabold text-2xl text-gray-900 tracking-tight">Messages</h2>
                 <button className="bg-gray-50 p-2 rounded-full hover:bg-gray-100 transition"><MoreVertical size={20} className="text-gray-600"/></button>
             </div>
             
+            {/* Search */}
             <div className="p-4 pb-2">
                 <div className="relative group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#005871] transition" size={18}/>
@@ -215,7 +215,8 @@ export default function MessagesPage() {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            {/* List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar pb-20">
                 {chats.length === 0 ? (
                     <div className="p-10 text-center flex flex-col items-center mt-10">
                         <div className="w-16 h-16 bg-[#005871]/10 rounded-full flex items-center justify-center mb-4 text-[#005871] animate-pulse"><Info size={28}/></div>
@@ -256,7 +257,7 @@ export default function MessagesPage() {
         </div>
 
         {/* --- MAIN CHAT AREA --- */}
-        <div className={`flex-1 flex flex-col bg-[#F0F2F5] relative transition-opacity duration-300 ${!isSidebarOpen || activeChat ? 'opacity-100 z-0' : 'opacity-0 md:opacity-100 -z-10'}`}>
+        <div className={`flex-1 flex flex-col bg-[#F0F2F5] relative transition-opacity duration-300 h-full ${!isSidebarOpen || activeChat ? 'opacity-100 z-0' : 'opacity-0 md:opacity-100 -z-10'}`}>
             
             {activeChat ? (
                 <>
@@ -286,7 +287,6 @@ export default function MessagesPage() {
                     {/* Messages Feed */}
                     <div 
                         className="flex-1 overflow-y-auto p-4 md:p-8 space-y-2"
-                        // Subtle Chat Wallpaper
                         style={{ 
                             backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', 
                             backgroundSize: '20px 20px' 
@@ -322,7 +322,6 @@ export default function MessagesPage() {
                                             : 'bg-white text-gray-800 rounded-bl-none border border-gray-100'
                                         }
                                     `}>
-                                        {/* Image Support (Future Proof) */}
                                         {item.type === 'image' && <img src={item.mediaUrl} className="rounded-lg mb-2 max-w-full h-auto"/>}
                                         
                                         <p>{item.text}</p>
@@ -351,7 +350,7 @@ export default function MessagesPage() {
                     {/* Input Area */}
                     <div className="p-4 bg-white border-t border-gray-200">
                         <form onSubmit={handleSendMessage} className="max-w-5xl mx-auto flex items-end gap-2 bg-gray-50 p-2 rounded-3xl border border-gray-200 focus-within:border-[#005871] focus-within:ring-1 focus-within:ring-[#005871]/20 focus-within:bg-white focus-within:shadow-lg transition-all duration-300">
-                            <button type="button" className="p-3 text-gray-400 hover:text-[#005871] hover:bg-gray-100 rounded-full transition"><Paperclip size={20}/></button>
+                            <button type="button" className="p-3 text-gray-400 hover:text-[#005871] hover:bg-gray-100 rounded-full transition"><Plus size={20}/></button>
                             <div className="flex-1 py-3">
                                 <input 
                                     value={newMessage}
