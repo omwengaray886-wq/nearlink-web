@@ -13,7 +13,7 @@ import {
   Loader2, Calendar as CalendarIcon, Users, Wallet, CheckCircle, 
   XCircle, TrendingUp, MoreHorizontal, MapPin, Star, Settings, Bell, 
   ArrowUpRight, ArrowDownRight, Search, Filter, Download, Clock,
-  PlayCircle, Award, Lightbulb, Trash2, Eye, Pencil, 
+  PlayCircle, Award, Lightbulb, Trash2, Eye, Pencil, ShieldAlert,
   // 👇 Category Icons
   Car, Utensils, Calendar, Map, Tent, 
   // 👇 Detail Icons
@@ -22,6 +22,16 @@ import {
 
 import Navbar from '@/components/Navbar';
 import CreateListingWizard from '@/components/host/CreateListingWizard';
+
+// --- CONSTANTS & ASSETS ---
+const WELCOME_QUOTES = [
+  "Hospitality is simply an opportunity to show love to strangers.",
+  "To host is to share your world.",
+  "Every stay is a story waiting to unfold.",
+  "Design a space where memories are made."
+];
+
+const BACKGROUND_IMAGE = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop";
 
 // --- MOCK DATA FOR ACADEMY ---
 const HOST_LESSONS = [
@@ -32,30 +42,71 @@ const HOST_LESSONS = [
 ];
 
 export default function HostPage() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // --- STATE ---
-  const [view, setView] = useState('dashboard'); 
+  // --- UI STATE (GATEKEEPER) ---
+  const [viewState, setViewState] = useState('loading'); // 'loading' | 'intro' | 'pending' | 'rejected' | 'dashboard'
+  const [quote, setQuote] = useState("");
+
+  // --- DASHBOARD STATE ---
+  const [view, setView] = useState('dashboard'); // 'dashboard' | 'wizard'
   const [activeTab, setActiveTab] = useState('overview'); 
   const [editingProperty, setEditingProperty] = useState(null);
   
-  // Data State
+  // --- DATA STATE ---
   const [myProperties, setMyProperties] = useState([]);
   const [myBookings, setMyBookings] = useState([]);
   const [stats, setStats] = useState({ revenue: 0, views: 0, bookings: 0, occupancy: 0 });
-  const [fetching, setFetching] = useState(true);
 
-  // --- 1. PROTECT ROUTE ---
+  // --- 1. INITIALIZATION (Random Quote) ---
   useEffect(() => {
-    if (!loading && !user) router.push('/login');
-  }, [user, loading, router]);
+    setQuote(WELCOME_QUOTES[Math.floor(Math.random() * WELCOME_QUOTES.length)]);
+  }, []);
 
-  // --- 2. REAL-TIME DATA FETCHING ---
+  // --- 2. AUTH & GATEKEEPER LOGIC ---
   useEffect(() => {
-    if (!user?.uid) return;
+    if (authLoading) return;
 
-    setFetching(true);
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    // Cinematic Delay (2.5s) to read the quote
+    const timer = setTimeout(() => {
+        // A. If user is already marked as Host in Auth profile
+        if (user.isHost === true) {
+            setViewState('dashboard');
+            return;
+        }
+
+        // B. Check Firestore Application
+        const unsubReq = onSnapshot(doc(db, "host_requests", user.uid), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.status === 'verified') {
+                    setViewState('dashboard');
+                } else if (data.status === 'pending') {
+                    setViewState('pending');
+                } else if (data.status === 'rejected') {
+                    setViewState('rejected');
+                }
+            } else {
+                // No request found -> Show Advanced Intro Screen (instead of redirect)
+                setViewState('intro');
+            }
+        });
+
+        return () => unsubReq();
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [user, authLoading, router]);
+
+  // --- 3. REAL-TIME DATA FETCHING (Only if Dashboard Active) ---
+  useEffect(() => {
+    if (viewState !== 'dashboard' || !user?.uid) return;
 
     // A. Listen to Properties
     const qProps = query(collection(db, 'properties'), where('hostId', '==', user.uid));
@@ -81,15 +132,13 @@ export default function HostPage() {
         views: 1240 + (bookings.length * 15), 
         occupancy: bookings.length > 0 ? 65 : 0 
       });
-      
-      setFetching(false);
     });
 
     return () => {
       unsubscribeProps();
       unsubscribeBookings();
     };
-  }, [user]);
+  }, [user, viewState]);
 
   // --- HANDLERS ---
   const handleTabClick = (tabName) => {
@@ -128,10 +177,9 @@ export default function HostPage() {
     }
   };
 
-  // --- HELPER: RENDER SMART DETAILS (NEW) ---
+  // --- HELPER: RENDER SMART DETAILS ---
   const renderSmartDetails = (prop) => {
     const d = prop.details || {};
-    
     switch(prop.type) {
         case 'transport':
             return (
@@ -176,7 +224,6 @@ export default function HostPage() {
   // --- COMPONENT: CALENDAR GRID ---
   const CalendarView = () => {
     const days = Array.from({ length: 30 }, (_, i) => i + 1);
-    
     return (
       <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
         <div className="flex justify-between mb-6">
@@ -208,17 +255,147 @@ export default function HostPage() {
     );
   };
 
-  if (loading || !user) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-white"/></div>;
+  // ============================================
+  // RENDER: 1. LOADING SCREEN (The Quote)
+  // ============================================
+  if (authLoading || viewState === 'loading') {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col items-center justify-center p-8 text-center overflow-hidden">
+        {/* Background Image with Zoom Effect */}
+        <div 
+          className="absolute inset-0 opacity-40 animate-in fade-in zoom-in duration-[3000ms]"
+          style={{ backgroundImage: `url(${BACKGROUND_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        />
+        <div className="relative z-10 max-w-2xl animate-in slide-in-from-bottom-10 fade-in duration-1000 delay-500">
+          <h1 className="text-3xl md:text-5xl font-serif italic leading-relaxed mb-6">
+            "{quote}"
+          </h1>
+          <div className="flex items-center justify-center gap-2 text-white/60 text-sm font-sans tracking-widest uppercase mt-8">
+            <Loader2 className="animate-spin" size={16} />
+            <span>Initializing Host Studio</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  // ============================================
+  // RENDER: 2. INTRO SCREEN (For New Users)
+  // ============================================
+  if (viewState === 'intro') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex flex-col md:flex-row">
+          {/* Left: Visual */}
+          <div className="w-full md:w-1/2 relative bg-black hidden md:block">
+            <img src={BACKGROUND_IMAGE} className="w-full h-full object-cover opacity-80" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-12">
+               <h2 className="text-white text-4xl font-bold mb-4">Start your journey.</h2>
+               <p className="text-gray-300 text-lg">Join thousands of hosts earning on NearLink today.</p>
+            </div>
+          </div>
+          
+          {/* Right: Content */}
+          <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 bg-gray-50">
+            <div className="max-w-md w-full space-y-8 animate-in slide-in-from-right-8 duration-700">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome, {user?.displayName?.split(' ')[0]}</h1>
+                <p className="text-gray-600 text-lg">You are one step away from becoming a host.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                   <div className="bg-green-100 p-2 rounded-lg text-green-700"><Wallet size={24}/></div>
+                   <div>
+                     <h3 className="font-bold">Earn Extra Income</h3>
+                     <p className="text-sm text-gray-500">Turn your spare space or car into a revenue stream.</p>
+                   </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                   <div className="bg-blue-100 p-2 rounded-lg text-blue-700"><ShieldAlert size={24}/></div>
+                   <div>
+                     <h3 className="font-bold">Secure Verification</h3>
+                     <p className="text-sm text-gray-500">We verify all hosts to ensure safety and trust.</p>
+                   </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button 
+                  onClick={() => router.push('/become-host')}
+                  className="w-full bg-black text-white text-lg font-bold py-4 rounded-xl hover:scale-[1.02] transition shadow-xl flex items-center justify-center gap-2 group"
+                >
+                  Start Registration 
+                  <ArrowUpRight size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition"/>
+                </button>
+                <p className="text-center text-xs text-gray-400 mt-4">Takes about 2 minutes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // RENDER: 3. PENDING STATE
+  // ============================================
+  if (viewState === 'pending') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-xl p-8 max-w-lg w-full text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
+          <div className="w-20 h-20 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Clock size={40} className="animate-pulse"/>
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">We are reviewing your profile</h2>
+          <p className="text-gray-600 mb-8">
+            Thanks {user.displayName}. Your ID is currently being verified by our security team. This helps keep NearLink safe.
+          </p>
+          <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-500 mb-8">
+             Expected wait time: <span className="font-bold text-gray-900">2 - 24 Hours</span>
+          </div>
+          <button onClick={() => router.push('/')} className="text-gray-900 font-bold hover:underline">Return Home</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // RENDER: 4. REJECTED STATE
+  // ============================================
+  if (viewState === 'rejected') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm text-center">
+            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <XCircle size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Update</h2>
+            <p className="text-gray-600 mb-6">
+                We're sorry, but your application to become a host was not approved at this time.
+            </p>
+            <button onClick={() => router.push('/support')} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold">
+                Contact Support
+            </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
+  // RENDER: 5. DASHBOARD (Verified Host)
+  // ============================================
   return (
-    <main className="min-h-screen bg-gray-50/50 font-sans pb-20">
+    <main className="min-h-screen bg-gray-50/50 font-sans pb-20 animate-in fade-in duration-700">
       
       {/* --- TOP NAVBAR --- */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-[40]">
           <Navbar />
       </div>
 
-      {/* --- HOST TOOLBAR (STICKY & HIGH Z-INDEX) --- */}
+      {/* --- HOST TOOLBAR --- */}
       <div className="bg-white border-b border-gray-200 sticky top-[72px] z-[100] shadow-sm">
           <div className="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between gap-4">
               <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg overflow-x-auto no-scrollbar">
@@ -260,7 +437,7 @@ export default function HostPage() {
                             {activeTab === 'learning' ? 'Host Academy' : `${activeTab} Dashboard`}
                         </h1>
                         <p className="text-sm text-gray-500">
-                            {activeTab === 'learning' ? 'Master the art of hosting.' : `Manage your business, ${user.name?.split(' ')[0] || 'Partner'}.`}
+                            {activeTab === 'learning' ? 'Master the art of hosting.' : `Manage your business, ${user.displayName?.split(' ')[0] || 'Partner'}.`}
                         </p>
                     </div>
                 </div>
