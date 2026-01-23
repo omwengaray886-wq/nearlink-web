@@ -23,15 +23,23 @@ import {
 import Navbar from '@/components/Navbar';
 import CreateListingWizard from '@/components/host/CreateListingWizard';
 
-// --- CONSTANTS & ASSETS ---
-const WELCOME_QUOTES = [
-  "Hospitality is simply an opportunity to show love to strangers.",
-  "To host is to share your world.",
-  "Every stay is a story waiting to unfold.",
-  "Design a space where memories are made."
+// --- 💎 PROFESSIONAL ASSETS ---
+
+// A curated list of high-end architectural/hospitality backgrounds
+const BACKGROUND_IMAGES = [
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop", // Modern Dark Interior
+  "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop", // Minimalist
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop"  // Luxury Home
 ];
 
-const BACKGROUND_IMAGE = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop";
+// Quotes focused on Business, Excellence, and Design
+const EXECUTIVE_QUOTES = [
+  "True hospitality consists of giving the best of yourself to your guests.",
+  "Design is not just what it looks like. Design is how it works.",
+  "Excellence is never an accident. It is always the result of high intention.",
+  "The details are not the details. They make the design.",
+  "Curate the moments that define a journey."
+];
 
 // --- MOCK DATA FOR ACADEMY ---
 const HOST_LESSONS = [
@@ -48,6 +56,7 @@ export default function HostPage() {
   // --- UI STATE (GATEKEEPER) ---
   const [viewState, setViewState] = useState('loading'); // 'loading' | 'intro' | 'pending' | 'rejected' | 'dashboard'
   const [quote, setQuote] = useState("");
+  const [bgImage, setBgImage] = useState("");
 
   // --- DASHBOARD STATE ---
   const [view, setView] = useState('dashboard'); // 'dashboard' | 'wizard'
@@ -59,9 +68,10 @@ export default function HostPage() {
   const [myBookings, setMyBookings] = useState([]);
   const [stats, setStats] = useState({ revenue: 0, views: 0, bookings: 0, occupancy: 0 });
 
-  // --- 1. INITIALIZATION (Random Quote) ---
+  // --- 1. INITIALIZATION (Cinematic Setup) ---
   useEffect(() => {
-    setQuote(WELCOME_QUOTES[Math.floor(Math.random() * WELCOME_QUOTES.length)]);
+    setQuote(EXECUTIVE_QUOTES[Math.floor(Math.random() * EXECUTIVE_QUOTES.length)]);
+    setBgImage(BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)]);
   }, []);
 
   // --- 2. AUTH & GATEKEEPER LOGIC ---
@@ -73,7 +83,7 @@ export default function HostPage() {
       return;
     }
 
-    // Cinematic Delay (2.5s) to read the quote
+    // Cinematic Delay (3s) to create a "Loading Environment" feel
     const timer = setTimeout(() => {
         // A. If user is already marked as Host in Auth profile
         if (user.isHost === true) {
@@ -93,18 +103,18 @@ export default function HostPage() {
                     setViewState('rejected');
                 }
             } else {
-                // No request found -> Show Advanced Intro Screen (instead of redirect)
+                // No request found -> Show Advanced Intro Screen
                 setViewState('intro');
             }
         });
 
         return () => unsubReq();
-    }, 2500);
+    }, 3000); // 3s delay for pacing
 
     return () => clearTimeout(timer);
   }, [user, authLoading, router]);
 
-  // --- 3. REAL-TIME DATA FETCHING (Only if Dashboard Active) ---
+  // --- 3. REAL-TIME DATA FETCHING ---
   useEffect(() => {
     if (viewState !== 'dashboard' || !user?.uid) return;
 
@@ -151,7 +161,7 @@ export default function HostPage() {
       await updateDoc(doc(db, "bookings", bookingId), { status });
     } catch (error) {
       console.error("Error updating booking:", error);
-      alert("Action failed.");
+      alert("Action failed. Please try again.");
     }
   };
 
@@ -161,11 +171,12 @@ export default function HostPage() {
         await deleteDoc(doc(db, "properties", propertyId));
       } catch (error) {
         console.error("Error deleting property:", error);
+        alert("Could not delete property.");
       }
     }
   };
 
-  // --- HELPER: GET ICON FOR TYPE ---
+  // --- HELPER ICONS & DETAILS ---
   const getTypeIcon = (type) => {
     switch(type) {
         case 'transport': return <Car size={18} className="text-blue-600"/>;
@@ -177,51 +188,22 @@ export default function HostPage() {
     }
   };
 
-  // --- HELPER: RENDER SMART DETAILS ---
   const renderSmartDetails = (prop) => {
     const d = prop.details || {};
     switch(prop.type) {
         case 'transport':
-            return (
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                    {d.color && <span className="flex items-center gap-1"><Palette size={12}/> {d.color}</span>}
-                    {d.transmission && <span className="flex items-center gap-1"><Gauge size={12}/> {d.transmission}</span>}
-                    {d.fuelType && <span className="flex items-center gap-1"><Fuel size={12}/> {d.fuelType}</span>}
-                </div>
-            );
+            return ( <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">{d.color && <span className="flex items-center gap-1"><Palette size={12}/> {d.color}</span>}{d.transmission && <span className="flex items-center gap-1"><Gauge size={12}/> {d.transmission}</span>}{d.fuelType && <span className="flex items-center gap-1"><Fuel size={12}/> {d.fuelType}</span>}</div> );
         case 'food':
-            return (
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                    {d.cuisine && <span className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-50 text-orange-700 rounded font-medium">{d.cuisine}</span>}
-                    {d.chefName && <span className="flex items-center gap-1"><ChefHat size={12}/> Chef {d.chefName}</span>}
-                </div>
-            );
+            return ( <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">{d.cuisine && <span className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-50 text-orange-700 rounded font-medium">{d.cuisine}</span>}{d.chefName && <span className="flex items-center gap-1"><ChefHat size={12}/> {d.chefName}</span>}</div> );
         case 'experience':
-            return (
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                    {d.duration && <span className="flex items-center gap-1"><Timer size={12}/> {d.duration} Hrs</span>}
-                    {d.activityLevel && <span className="flex items-center gap-1"><Zap size={12}/> {d.activityLevel}</span>}
-                </div>
-            );
+            return ( <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">{d.duration && <span className="flex items-center gap-1"><Timer size={12}/> {d.duration} Hrs</span>}{d.activityLevel && <span className="flex items-center gap-1"><Zap size={12}/> {d.activityLevel}</span>}</div> );
         case 'event':
-            return (
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                    {d.date && <span className="flex items-center gap-1"><CalendarIcon size={12}/> {d.date}</span>}
-                    {d.ageLimit && <span className="flex items-center gap-1"><Users size={12}/> {d.ageLimit}</span>}
-                </div>
-            );
-        default: // Stay
-            return (
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                    <span className="flex items-center gap-1">{d.guests || 2} Guests</span>
-                    <span className="flex items-center gap-1">•</span>
-                    <span className="flex items-center gap-1">{d.bedrooms || 1} Bedrooms</span>
-                </div>
-            );
+            return ( <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">{d.date && <span className="flex items-center gap-1"><CalendarIcon size={12}/> {d.date}</span>}{d.ageLimit && <span className="flex items-center gap-1"><Users size={12}/> {d.ageLimit}</span>}</div> );
+        default: 
+            return ( <div className="flex items-center gap-3 text-xs text-gray-500 mt-1"><span className="flex items-center gap-1">{d.guests || 2} Guests</span><span className="flex items-center gap-1">•</span><span className="flex items-center gap-1">{d.bedrooms || 1} Bedrooms</span></div> );
     }
   };
 
-  // --- COMPONENT: CALENDAR GRID ---
   const CalendarView = () => {
     const days = Array.from({ length: 30 }, (_, i) => i + 1);
     return (
@@ -234,21 +216,11 @@ export default function HostPage() {
           </div>
         </div>
         <div className="grid grid-cols-7 gap-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-            <div key={d} className="text-center text-xs font-bold text-gray-400 uppercase py-2">{d}</div>
-          ))}
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => ( <div key={d} className="text-center text-xs font-bold text-gray-400 uppercase py-2">{d}</div> ))}
           <div className="col-span-4"></div> 
           {days.map(day => {
             const isBooked = myBookings.some(b => day % 5 === 0);
-            return (
-              <div key={day} className={`
-                h-24 border rounded-xl p-2 relative transition hover:border-[#005871] cursor-pointer
-                ${isBooked ? 'bg-[#005871]/10 border-[#005871]/20' : 'bg-white border-gray-100'}
-              `}>
-                <span className={`text-sm font-bold ${isBooked ? 'text-[#005871]' : 'text-gray-700'}`}>{day}</span>
-                {isBooked && <div className="mt-2 text-[10px] bg-white p-1 rounded border border-[#005871]/20 shadow-sm truncate">Guest</div>}
-              </div>
-            );
+            return ( <div key={day} className={`h-24 border rounded-xl p-2 relative transition hover:border-[#005871] cursor-pointer ${isBooked ? 'bg-[#005871]/10 border-[#005871]/20' : 'bg-white border-gray-100'}`}><span className={`text-sm font-bold ${isBooked ? 'text-[#005871]' : 'text-gray-700'}`}>{day}</span>{isBooked && <div className="mt-2 text-[10px] bg-white p-1 rounded border border-[#005871]/20 shadow-sm truncate">Guest</div>}</div> );
           })}
         </div>
       </div>
@@ -256,24 +228,39 @@ export default function HostPage() {
   };
 
   // ============================================
-  // RENDER: 1. LOADING SCREEN (The Quote)
+  // RENDER: 1. CINEMATIC LOADING SCREEN (New & Advanced)
   // ============================================
   if (authLoading || viewState === 'loading') {
     return (
-      <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col items-center justify-center p-8 text-center overflow-hidden">
-        {/* Background Image with Zoom Effect */}
+      <div className="fixed inset-0 z-[100] bg-black text-white flex flex-col items-center justify-center overflow-hidden">
+        {/* Animated Background */}
         <div 
-          className="absolute inset-0 opacity-40 animate-in fade-in zoom-in duration-[3000ms]"
-          style={{ backgroundImage: `url(${BACKGROUND_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+          className="absolute inset-0 opacity-40 animate-[zoom-in_15s_ease-out_forwards]"
+          style={{ 
+            backgroundImage: `url(${bgImage})`, 
+            backgroundSize: 'cover', 
+            backgroundPosition: 'center' 
+          }}
         />
-        <div className="relative z-10 max-w-2xl animate-in slide-in-from-bottom-10 fade-in duration-1000 delay-500">
-          <h1 className="text-3xl md:text-5xl font-serif italic leading-relaxed mb-6">
-            "{quote}"
-          </h1>
-          <div className="flex items-center justify-center gap-2 text-white/60 text-sm font-sans tracking-widest uppercase mt-8">
-            <Loader2 className="animate-spin" size={16} />
-            <span>Initializing Host Studio</span>
-          </div>
+        {/* Dark Gradient Overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+
+        {/* Content */}
+        <div className="relative z-10 max-w-4xl px-8 text-center">
+            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent mb-8 animate-in fade-in duration-1000"></div>
+            
+            <h1 className="text-3xl md:text-6xl font-serif italic leading-tight mb-8 animate-in slide-in-from-bottom-8 fade-in duration-1000 delay-300">
+                "{quote}"
+            </h1>
+            
+            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent mt-8 animate-in fade-in duration-1000"></div>
+
+            <div className="flex flex-col items-center gap-4 mt-12 animate-in fade-in duration-1000 delay-700">
+                <div className="flex items-center gap-3 px-6 py-2 border border-white/20 rounded-full backdrop-blur-md bg-white/5">
+                    <Loader2 className="animate-spin text-white" size={16} />
+                    <span className="text-xs font-sans tracking-[0.2em] uppercase text-white/90">Initializing Studio</span>
+                </div>
+            </div>
         </div>
       </div>
     );
@@ -287,49 +274,37 @@ export default function HostPage() {
       <div className="min-h-screen bg-white flex flex-col">
         <Navbar />
         <div className="flex-1 flex flex-col md:flex-row">
-          {/* Left: Visual */}
           <div className="w-full md:w-1/2 relative bg-black hidden md:block">
-            <img src={BACKGROUND_IMAGE} className="w-full h-full object-cover opacity-80" />
+            <img src={bgImage} className="w-full h-full object-cover opacity-80" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-12">
-               <h2 className="text-white text-4xl font-bold mb-4">Start your journey.</h2>
-               <p className="text-gray-300 text-lg">Join thousands of hosts earning on NearLink today.</p>
+               <h2 className="text-white text-5xl font-serif italic mb-4">Craft your legacy.</h2>
+               <p className="text-gray-300 text-lg">Join the world's most curated hosting platform.</p>
             </div>
           </div>
-          
-          {/* Right: Content */}
-          <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 bg-gray-50">
+          <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 bg-white">
             <div className="max-w-md w-full space-y-8 animate-in slide-in-from-right-8 duration-700">
               <div>
                 <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome, {user?.displayName?.split(' ')[0]}</h1>
-                <p className="text-gray-600 text-lg">You are one step away from becoming a host.</p>
+                <p className="text-gray-600 text-lg">Ready to transform your space into an experience?</p>
               </div>
-
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
-                   <div className="bg-green-100 p-2 rounded-lg text-green-700"><Wallet size={24}/></div>
-                   <div>
-                     <h3 className="font-bold">Earn Extra Income</h3>
-                     <p className="text-sm text-gray-500">Turn your spare space or car into a revenue stream.</p>
-                   </div>
+                <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                   <div className="bg-black p-2 rounded-lg text-white"><Wallet size={24}/></div>
+                   <div><h3 className="font-bold">Unlocking Potential</h3><p className="text-sm text-gray-500">Monetize your assets with precision.</p></div>
                 </div>
-                <div className="flex items-start gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
-                   <div className="bg-blue-100 p-2 rounded-lg text-blue-700"><ShieldAlert size={24}/></div>
-                   <div>
-                     <h3 className="font-bold">Secure Verification</h3>
-                     <p className="text-sm text-gray-500">We verify all hosts to ensure safety and trust.</p>
-                   </div>
+                <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                   <div className="bg-black p-2 rounded-lg text-white"><ShieldAlert size={24}/></div>
+                   <div><h3 className="font-bold">Trusted Network</h3><p className="text-sm text-gray-500">Verified guests. Verified hosts. Total peace of mind.</p></div>
                 </div>
               </div>
-
               <div className="pt-4">
                 <button 
                   onClick={() => router.push('/become-host')}
                   className="w-full bg-black text-white text-lg font-bold py-4 rounded-xl hover:scale-[1.02] transition shadow-xl flex items-center justify-center gap-2 group"
                 >
-                  Start Registration 
+                  Begin Verification
                   <ArrowUpRight size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition"/>
                 </button>
-                <p className="text-center text-xs text-gray-400 mt-4">Takes about 2 minutes</p>
               </div>
             </div>
           </div>
@@ -344,19 +319,19 @@ export default function HostPage() {
   if (viewState === 'pending') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-xl p-8 max-w-lg w-full text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
-          <div className="w-20 h-20 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white rounded-3xl shadow-xl p-12 max-w-lg w-full text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-200 via-gray-400 to-gray-200"></div>
+          <div className="w-20 h-20 bg-gray-50 text-gray-900 rounded-full flex items-center justify-center mx-auto mb-6">
             <Clock size={40} className="animate-pulse"/>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">We are reviewing your profile</h2>
-          <p className="text-gray-600 mb-8">
-            Thanks {user.displayName}. Your ID is currently being verified by our security team. This helps keep NearLink safe.
+          <h2 className="text-3xl font-serif italic text-gray-900 mb-4">Application in Review</h2>
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            Thank you, {user.displayName}. Your profile is currently under review by our curation team. We ensure every host meets our standards of excellence.
           </p>
-          <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-500 mb-8">
-             Expected wait time: <span className="font-bold text-gray-900">2 - 24 Hours</span>
+          <div className="inline-block bg-black text-white px-6 py-2 rounded-full text-sm font-bold tracking-wide">STATUS: PENDING</div>
+          <div className="mt-8">
+             <button onClick={() => router.push('/')} className="text-gray-400 hover:text-black text-sm font-bold tracking-widest uppercase">Return to Homepage</button>
           </div>
-          <button onClick={() => router.push('/')} className="text-gray-900 font-bold hover:underline">Return Home</button>
         </div>
       </div>
     );
@@ -369,16 +344,10 @@ export default function HostPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm text-center">
-            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <XCircle size={32} />
-            </div>
+            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6"><XCircle size={32} /></div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Update</h2>
-            <p className="text-gray-600 mb-6">
-                We're sorry, but your application to become a host was not approved at this time.
-            </p>
-            <button onClick={() => router.push('/support')} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold">
-                Contact Support
-            </button>
+            <p className="text-gray-600 mb-6">We're sorry, but your application was not approved at this time.</p>
+            <button onClick={() => router.push('/support')} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold">Contact Support</button>
         </div>
       </div>
     );
