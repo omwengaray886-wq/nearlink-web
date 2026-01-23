@@ -16,7 +16,6 @@ import {
 
 // ✅ Components
 import Navbar from '@/components/Navbar';
-// Footer import removed to fix duplicate issue
 import Categories from '@/components/Categories';
 import ListingCard from '@/components/ListingCard'; 
 import ExperienceCard from '@/components/ExperienceCard'; 
@@ -26,6 +25,7 @@ import FoodCard from '@/components/FoodCard';
 import TransportCard from '@/components/TransportCard';
 import GuideCard from '@/components/GuideCard';
 import InteractiveMap from '@/components/InteractiveMap'; 
+import DownloadAppSection from '@/components/DownloadAppSection'; // ✅ Added Import
 
 // --- CONSTANTS ---
 const POPULAR_LOCATIONS = [
@@ -858,7 +858,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer component removed here */}
+      {/* ✅ NEW: DOWNLOAD APP SECTION */}
+      <DownloadAppSection />
+
     </main>
   );
 }
