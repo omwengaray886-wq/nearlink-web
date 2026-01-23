@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext'; 
 import { db } from '@/lib/firebase'; 
-// ✅ Added onSnapshot for real-time updates
 import { collection, getDocs, query, limit, orderBy, onSnapshot } from 'firebase/firestore';
 
 import { 
@@ -31,14 +30,14 @@ import DownloadAppSection from '@/components/DownloadAppSection';
 
 // --- CONSTANTS ---
 const POPULAR_LOCATIONS = [
-  { name: "Nairobi", desc: "Capital City" },
-  { name: "Diani Beach", desc: "Coastal Paradise" },
-  { name: "Mombasa", desc: "Historic Coast" },
-  { name: "Naivasha", desc: "Lakes & Geothermals" },
-  { name: "Maasai Mara", desc: "Safari & Wildlife" },
-  { name: "Nakuru", desc: "National Park" },
-  { name: "Lamu", desc: "Old Town & Culture" },
-  { name: "Nanyuki", desc: "Mount Kenya Region" }
+  { name: "Nairobi", desc: "The Green City in the Sun", image: "https://images.unsplash.com/photo-1663447946197-20072b226079?q=80&w=800&auto=format&fit=crop" },
+  { name: "Diani Beach", desc: "Africa's Leading Beach Destination", image: "https://images.unsplash.com/photo-1544977930-1090098df240?q=80&w=800&auto=format&fit=crop" },
+  { name: "Mombasa", desc: "Historic Coastal City", image: "https://images.unsplash.com/photo-1570703770337-123321529593?q=80&w=800&auto=format&fit=crop" },
+  { name: "Naivasha", desc: "Lakes & Geothermal Spas", image: "https://images.unsplash.com/photo-1621689486187-b93976374f67?q=80&w=800&auto=format&fit=crop" },
+  { name: "Maasai Mara", desc: "The World Cup of Wildlife", image: "https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=800&auto=format&fit=crop" },
+  { name: "Nakuru", desc: "Home of the Flamingos", image: "https://images.unsplash.com/photo-1647867375236-4076e036df86?q=80&w=800&auto=format&fit=crop" },
+  { name: "Lamu", desc: "UNESCO World Heritage Site", image: "https://images.unsplash.com/photo-1590933742469-8392138e0783?q=80&w=800&auto=format&fit=crop" },
+  { name: "Nanyuki", desc: "Gateway to Mount Kenya", image: "https://images.unsplash.com/photo-1655219904297-b6d39a383427?q=80&w=800&auto=format&fit=crop" }
 ];
 
 const HERO_TEXTS = {
@@ -296,7 +295,6 @@ export default function Home() {
 
   // --- 1. REAL-TIME LISTENER FOR ACTIVITIES (Things To Do / Experiences) ---
   useEffect(() => {
-    // This connects directly to your DB and updates instantly
     const q = query(collection(db, "activities"), orderBy("createdAt", "desc"), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const items = snapshot.docs.map(doc => {
@@ -310,26 +308,50 @@ export default function Home() {
                 rating: d.rating || "New"
             };
         });
-        
-        // Update both Experiences and Things To Do with live data
-        setRealData(prev => ({
-            ...prev,
-            experiences: items,
-            things: items // ✅ Populates Things To Do with real-time data
-        }));
-    }, (error) => {
-        console.error("Real-time activities fetch error:", error);
-    });
-
-    return () => unsubscribe(); // Clean up listener on unmount
+        setRealData(prev => ({ ...prev, experiences: items, things: items }));
+    }, (error) => { console.error("Real-time activities error:", error); });
+    return () => unsubscribe();
   }, []);
 
-  // --- 2. GENERAL FETCH FOR STATIC DATA ---
+  // ✅ --- 2. REAL-TIME LISTENER FOR DESTINATIONS (THE FIX) ---
+  // This listens to 'destinations'. If empty, it falls back to hardcoded POPULAR_LOCATIONS to ensure UI is populated.
+  useEffect(() => {
+    const q = query(collection(db, "destinations"), limit(20));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            title: doc.data().name || doc.data().city || "Destination",
+            location: doc.data().description || doc.data().country || "Explore",
+            image: doc.data().imageUrl || doc.data().image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1",
+            weather: doc.data().weather || "28°C",
+            rating: "4.8"
+        }));
+
+        if (items.length === 0) {
+             // FALLBACK: If DB is empty, use the professional constants
+             const mockDestinations = POPULAR_LOCATIONS.map((loc, index) => ({
+                 id: `mock-${index}`,
+                 title: loc.name,
+                 location: loc.desc,
+                 image: loc.image,
+                 weather: "28°C",
+                 rating: "4.9"
+             }));
+             setRealData(prev => ({ ...prev, destinations: mockDestinations }));
+        } else {
+             setRealData(prev => ({ ...prev, destinations: items }));
+        }
+    }, (error) => { console.warn("Destinations listener error:", error); });
+    return () => unsubscribe();
+  }, []);
+
+  // --- 3. GENERAL FETCH FOR OTHER STATIC CATEGORIES ---
   useEffect(() => {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // Stories Fetch
+            // Stories
             try {
                 const storiesQuery = query(collection(db, "stories"), orderBy("createdAt", "desc"), limit(10));
                 const storiesSnap = await getDocs(storiesQuery);
@@ -343,7 +365,6 @@ export default function Home() {
                 })));
             } catch (err) {}
 
-            // Generic Fetcher
             const fetchCollection = async (col, limitCount) => {
                 try {
                     const q = query(collection(db, col), limit(limitCount));
@@ -362,11 +383,10 @@ export default function Home() {
             setRealData(prev => ({ 
                 ...prev,
                 stays: stays.map(d => ({ ...d, title: d.title || d.name, price: d.pricePerNight || d.price, image: d.images?.[0] || d.imageUrl })), 
-                // Experiences & Things handled by onSnapshot
                 food: food.map(d => ({ ...d, title: d.title || d.name, image: d.imageurl || d.image })), 
                 transport: transport.map(d => ({ ...d, title: d.make ? `${d.make} ${d.model}` : d.title, image: d.imageUrl })), 
                 guides: guides.map(d => ({ ...d, image: d.imageUrl })),
-                events: [], destinations: []
+                events: [] 
             }));
 
         } catch (error) {
@@ -425,8 +445,8 @@ export default function Home() {
       let data = [];
       if (activeCategory === 'Stays') data = realData.stays;
       else if (activeCategory === 'Experiences') data = realData.experiences;
-      // ✅ Using realData.things for Things To Do
       else if (activeCategory === 'Things To Do') data = realData.things;
+      else if (activeCategory === 'Destinations') data = realData.destinations; // ✅ Correct Data Source
       else if (activeCategory === 'Food & Nightlife') data = realData.food;
       else if (activeCategory === 'Transport') data = realData.transport;
       else if (activeCategory === 'Travel Guide') data = realData.guides;
@@ -512,7 +532,7 @@ export default function Home() {
                   {user?.name ? `Welcome back, ${user.name.split(' ')[0]}.` : (HERO_TEXTS[activeCategory] || "Wake up Here.")}
               </h1>
               
-              {/* SEARCH BAR (Full Logic Restored) */}
+              {/* SEARCH BAR (Full Logic) */}
               <div 
                     ref={searchRef}
                     className={`w-full max-w-4xl bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-2 flex flex-col md:flex-row gap-2 md:gap-0 relative z-20 border border-white/50 transition-all duration-200 ${activeSearchField ? 'bg-gray-100' : ''}`}
@@ -588,16 +608,6 @@ export default function Home() {
                       <span className="md:hidden font-bold mr-2">Search</span>
                       <Search size={24} strokeWidth={2.5} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition"/>
                   </button>
-              </div>
-
-              {/* RECENT SEARCHES */}
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <span className="text-white/60 text-xs font-bold uppercase tracking-wider py-1.5 hidden md:block">Jump back in:</span>
-                  {MOCK_RECENT.map((item) => (
-                      <button key={item.id} onClick={() => router.push('/search')} className="bg-black/40 backdrop-blur-md hover:bg-black/60 border border-white/10 rounded-full px-4 py-1.5 flex items-center gap-2 text-white text-xs font-medium transition cursor-pointer">
-                          <item.icon size={12} className="text-[#005871]"/> {item.label}
-                      </button>
-                  ))}
               </div>
           </div>
       </div>
